@@ -1,51 +1,58 @@
-// AdminScreen.js
 import React from 'react';
-import { View, Text, Button, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function AdminScreen() {
   const navigation = useNavigation();
 
+  const options = [
+    { name: 'Class', screen: 'ClassScreen', icon: 'school-outline', color: 'green' },
+    { name: 'Student', screen: 'StudentScreen', icon: 'people-outline', color: 'blue' },
+    { name: 'Bus', screen: 'BusScreen', icon: 'bus-outline', color: 'red' },
+    { name: 'School Entries', screen: 'SchoolEntriesScreen', icon: 'school-outline', color: 'purple' },
+    { name: 'Leaves', screen: 'LeavesScreen', icon: 'calendar-outline', color: 'teal' },
+    { name: 'Logout', screen: 'Login', icon: 'log-out-outline', color: 'gray' },
+  ];
+
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Admin Dashboard</Text>
-      <ScrollView>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Manage Class and Student Details</Text>
-          <Button title="View/Add/Update Classes" onPress={() => {}} />
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Parent Credentials</Text>
-          <Button title="Manage Parent Accounts" onPress={() => {}} />
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Student Attendance</Text>
-          <Button title="View IN/OUT Times" onPress={() => {}} />
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Leave Applications</Text>
-          <Button title="Approve/Reject Leaves" onPress={() => {}} />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <ImageBackground source={require('@/assets/images/benefits-of-school-security-systems.jpg')} style={styles.background}>
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.title}>Admin Dashboard</Text>
+        <ScrollView>
+          {options.map((option, index) => (
+            <TouchableOpacity key={index} style={styles.card} onPress={() => navigation.navigate(option.screen)}>
+              <Ionicons name={option.icon} size={24} color={option.color} />
+              <Text style={styles.cardTitle}>{option.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </SafeAreaView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#F8F8F8',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Add overlay to make text readable
     padding: 16,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#1E90FF',
+    color: '#fff',
     marginBottom: 16,
   },
   card: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
@@ -59,6 +66,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#4A4A4A',
-    marginBottom: 8,
+    marginLeft: 16,
   },
 });

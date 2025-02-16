@@ -8,7 +8,26 @@ type Props = {
 };
 
 export default function SignUpScreen({ navigation }: Props) {
-  const [userType, setUserType] = useState("Parent");
+  const [userType, setUserType] = useState("");
+
+  const handleSignUp = () => {
+    switch (userType) {
+      case "Parent":
+        navigation.navigate("Parent");
+        break;
+      case "School Authority":
+        navigation.navigate("SchoolAuthority");
+        break;
+      case "Admin":
+        navigation.navigate("Admin");
+        break;
+      case "Bus Driver":
+        navigation.navigate("BusDriver");
+        break;
+      default:
+        break;
+    }
+  };
 
   return (
     <ImageBackground source={require("@/assets/images/pexels-cottonbro-6590933.jpg")} style={styles.background}>
@@ -30,18 +49,19 @@ export default function SignUpScreen({ navigation }: Props) {
           style={styles.input}
           onValueChange={(itemValue) => setUserType(itemValue)}
         >
+          <Picker.Item label="Sign in as" value="" />
           <Picker.Item label="Parent" value="Parent" />
-          <Picker.Item label="Teacher" value="Teacher" />
-          <Picker.Item label="School Authority" value="School Authority" />
-          <Picker.Item label="Driver" value="Driver" />
+          <Picker.Item label="School Authority" value="SchoolAuthority" />
+          <Picker.Item label="Admin" value="Admin" />
+          <Picker.Item label="Bus Driver" value="BusDriver" />
         </Picker>
 
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("Success")}>
+        <TouchableOpacity style={styles.button} onPress={handleSignUp} disabled={!userType}>
           <Text style={styles.buttonText}>Sign Up</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-          <Text style={styles.link}>Already have an account?login</Text>
+          <Text style={styles.link}>Already have an account? Login</Text>
         </TouchableOpacity>
       </View>
     </ImageBackground>

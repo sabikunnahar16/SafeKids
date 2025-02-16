@@ -1,52 +1,66 @@
 import React from 'react';
-import { View, Text, Button, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ScanAndRecord from './ScanAndRecord'; // Ensure this path is correct
 
-export default function SchoolAuthorityScreen() {
+type RootStackParamList = {
+  Home: undefined;
+  ScanAndRecord: undefined;
+};
+
+import { StackNavigationProp } from '@react-navigation/stack';
+
+type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
+
+const HomeScreen: React.FC<{ navigation: HomeScreenNavigationProp }> = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>School Authority Dashboard</Text>
-      <ScrollView>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>QR Code Scanning</Text>
-          <Button title="Scan Student QR Code" onPress={() => {}} />
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Attendance Records</Text>
-          <Button title="Record IN/OUT Times" onPress={() => {}} />
-        </View>
-      </ScrollView>
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ScanAndRecord')}>
+        <Text style={styles.buttonText}>Scan & Record IN/OUT Time</Text>
+      </TouchableOpacity>
     </SafeAreaView>
+  );
+};
+
+const Stack = createStackNavigator<RootStackParamList>();
+
+export default function SchoolAuthorityScreen() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="ScanAndRecord" component={ScanAndRecord} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F8F8',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
     padding: 16,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#FF6347',
-    marginBottom: 16,
+    marginBottom: 20,
   },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+  button: {
+    backgroundColor: '#4CAF50',
+    padding: 15,
+    marginVertical: 10,
+    borderRadius: 10,
+    width: 250,
+    alignItems: 'center',
   },
-  cardTitle: {
+  buttonText: {
+    color: 'white',
     fontSize: 18,
-    fontWeight: '600',
-    color: '#4A4A4A',
-    marginBottom: 8,
   },
 });

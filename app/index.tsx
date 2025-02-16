@@ -45,12 +45,12 @@ export default function Index() {
      
            {/* Donation & Request Buttons */}
            <View style={styles.buttonContainer}>
-             <Link href="../root/(tabs)/home" asChild>
+             <Link href="../root/(tabs)/parent" asChild>
                <TouchableOpacity style={styles.button}>
                  <Text style={styles.buttonText}>Let's Go SafeKids </Text>
                </TouchableOpacity>
              </Link>
-             <Link href="./contact" asChild>
+             <Link href="../root/(tabs)/contact" asChild>
                <TouchableOpacity style={[styles.button, styles.requestButton]}>
                  <Text style={styles.buttonText}>Contact Us</Text>
                </TouchableOpacity>

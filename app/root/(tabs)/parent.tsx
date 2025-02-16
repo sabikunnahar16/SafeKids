@@ -1,49 +1,75 @@
-// ParentScreen.js
 import React from 'react';
-import { View, Text, Button, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+//import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function ParentScreen() {
+const backgroundImage = require('@/assets/images/D2115_186_139_1200.jpg'); // Replace with your image path
+
+const ParentDashboard = () => {
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Parent Dashboard</Text>
-      <ScrollView>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Child Details</Text>
-          <Button title="View Child's Information" onPress={() => {}} />
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Attendance Details</Text>
-          <Button title="View IN/OUT Times" onPress={() => {}} />
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Leave Application</Text>
-          <Button title="Apply for Leave" onPress={() => {}} />
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Leave Status</Text>
-          <Button title="Track Leave Applications" onPress={() => {}} />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
+      <View style={styles.overlay} />
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.header}>Parent Dashboard</Text>
+        
+        <TouchableOpacity style={styles.card}>
+          <Icon name="person" size={30} color="#FFFFFF" />
+          <View style={styles.cardContent}>
+            <Text style={styles.cardTitle}>View Child's Information</Text>
+          </View>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.card}>
+          <Icon name="access-time" size={30} color="#FFFFFF" />
+          <View style={styles.cardContent}>
+            <Text style={styles.cardTitle}>View IN/OUT Times</Text>
+          </View>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.card}>
+          <Icon name="event" size={30} color="#FFFFFF" />
+          <View style={styles.cardContent}>
+            <Text style={styles.cardTitle}>Apply for Leave</Text>
+          </View>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.card}>
+          <Icon name="track-changes" size={30} color="#FFFFFF" />
+          <View style={styles.cardContent}>
+            <Text style={styles.cardTitle}>Track Leave Applications</Text>
+          </View>
+        </TouchableOpacity>
+      </SafeAreaView>
+    </ImageBackground>
   );
-}
+};
 
 const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Darker overlay for better readability
+  },
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    padding: 16,
+    justifyContent: 'center',
+    padding: 20,
   },
-  title: {
+  header: {
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#FFFFFF',
     textAlign: 'center',
-    color: '#1E90FF',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   card: {
-    backgroundColor: '#F8F8F8',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)', // Slight transparency for the card
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
@@ -52,12 +78,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
   },
+  cardContent: {
+    marginLeft: 16,
+  },
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: '#4A4A4A',
-    marginBottom: 8,
   },
 });
 
-
+export default ParentDashboard;

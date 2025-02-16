@@ -1,13 +1,34 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TextInput, ImageBackground, StyleSheet, TouchableOpacity } from "react-native";
 import { NavigationProp } from "@react-navigation/native";
-import { FontAwesome } from "@expo/vector-icons";
+import { Picker } from "@react-native-picker/picker";
 
 type Props = {
   navigation: NavigationProp<any>;
 };
 
 export default function LoginScreen({ navigation }: Props) {
+  const [userType, setUserType] = useState("");
+
+  const handleLogin = () => {
+    switch (userType) {
+      case "Parent":
+        navigation.navigate("Parent");
+        break;
+      case "School Authority":
+        navigation.navigate("SchoolAuthority");
+        break;
+      case "Admin":
+        navigation.navigate("Admin");
+        break;
+      case "Bus Driver":
+        navigation.navigate("BusDriver");
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <ImageBackground source={require("@/assets/images/pexels-cottonbro-6590933.jpg")} style={styles.background}>
       <View style={styles.overlay} />
@@ -17,31 +38,25 @@ export default function LoginScreen({ navigation }: Props) {
         <TextInput style={styles.input} placeholder="Email" placeholderTextColor="#ddd" />
         <TextInput style={styles.input} placeholder="Password" placeholderTextColor="#ddd" secureTextEntry />
 
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("Success")}>
+        <Picker
+          selectedValue={userType}
+          style={styles.input}
+          onValueChange={(itemValue) => setUserType(itemValue)}
+        >
+          <Picker.Item label="Log in as" value="" />
+          <Picker.Item label="Parent" value="Parent" />
+          <Picker.Item label="School Authority" value="SchoolAuthority" />
+          <Picker.Item label="Admin" value="Admin" />
+          <Picker.Item label="Bus Driver" value="BusDriver" />
+        </Picker>
+
+        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={!userType}>
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
-          <Text style={styles.link}>Forgot Password?</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
+          <Text style={styles.link}>Don't have an account? Sign Up</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
-          <Text style={styles.signupText}>Don't have an account? <Text style={styles.signupLink}>Sign Up</Text></Text>
-        </TouchableOpacity>
-
-        {/* Social Media Login */}
-        <Text style={styles.orText}>Or Login With</Text>
-        <View style={styles.socialContainer}>
-          <TouchableOpacity style={styles.socialButton}>
-            <FontAwesome name="google" size={24} color="#DB4437" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.socialButton}>
-            <FontAwesome name="facebook" size={24} color="#3b5998" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.socialButton}>
-            <FontAwesome name="instagram" size={24} color="#C13584" />
-          </TouchableOpacity>
-        </View>
       </View>
     </ImageBackground>
   );
@@ -64,9 +79,4 @@ const styles = StyleSheet.create({
   button: { backgroundColor: "#FF6600", padding: 15, borderRadius: 8, width: "100%", alignItems: "center", marginTop: 10 },
   buttonText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
   link: { color: "#FF6600", marginTop: 15, fontSize: 16 },
-  signupText: { color: "#fff", marginTop: 20, fontSize: 16 },
-  signupLink: { color: "#FF6600", fontWeight: "bold" },
-  orText: { color: "#fff", marginTop: 25, fontSize: 16, fontWeight: "bold" },
-  socialContainer: { flexDirection: "row", marginTop: 15 },
-  socialButton: { marginHorizontal: 10, padding: 10, backgroundColor: "#fff", borderRadius: 50 },
 });
