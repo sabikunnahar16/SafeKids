@@ -29,7 +29,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
             <Text style={styles.buttonText}>Login</Text>
             </TouchableOpacity>
         </Link>
-        <Link href="./admin" asChild>
+        <Link href="./signup1" asChild>
           <TouchableOpacity style={styles.button}>
             <Text style={styles.buttonText}>Create Account</Text>
             </TouchableOpacity>

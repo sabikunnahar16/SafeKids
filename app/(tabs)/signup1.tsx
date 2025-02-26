@@ -1,28 +1,25 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, ImageBackground, StyleSheet, TouchableOpacity } from "react-native";
-import { NavigationProp } from "@react-navigation/native";
 import { Picker } from "@react-native-picker/picker";
+import { useRouter } from 'expo-router';
 
-type Props = {
-  navigation: NavigationProp<any>;
-};
-
-export default function SignUpScreen({ navigation }: Props) {
+export default function SignUpScreen() {
+  const router = useRouter();
   const [userType, setUserType] = useState("");
 
   const handleSignUp = () => {
     switch (userType) {
-      case "Parent":
-        navigation.navigate("Parent");
+      case "parent":
+        router.push("/parent" as any);
         break;
       case "School Authority":
-        navigation.navigate("SchoolAuthority");
+        router.push("/SchoolAuth" as any);
         break;
-      case "Admin":
-        navigation.navigate("Admin");
+      case "admin":
+        router.push("/admin" as any);
         break;
       case "Bus Driver":
-        navigation.navigate("BusDriver");
+        router.push("/BusDriver" as any);
         break;
       default:
         break;
@@ -50,9 +47,9 @@ export default function SignUpScreen({ navigation }: Props) {
           onValueChange={(itemValue) => setUserType(itemValue)}
         >
           <Picker.Item label="Sign in as" value="" />
-          <Picker.Item label="Parent" value="Parent" />
-          <Picker.Item label="School Authority" value="SchoolAuthority" />
-          <Picker.Item label="Admin" value="Admin" />
+          <Picker.Item label="parent" value="parent" />
+          <Picker.Item label="School Authority" value="SchoolAuth" />
+          <Picker.Item label="Admin" value="admin" />
           <Picker.Item label="Bus Driver" value="BusDriver" />
         </Picker>
 
@@ -60,7 +57,7 @@ export default function SignUpScreen({ navigation }: Props) {
           <Text style={styles.buttonText}>Sign Up</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+        <TouchableOpacity onPress={() => router.push("/login" as any)}>
           <Text style={styles.link}>Already have an account? Login</Text>
         </TouchableOpacity>
       </View>

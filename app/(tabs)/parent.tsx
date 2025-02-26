@@ -14,28 +14,28 @@ const ParentDashboard = () => {
         <Text style={styles.header}>Parent Dashboard</Text>
         
         <TouchableOpacity style={styles.card}>
-          <Icon name="person" size={30} color="#FFFFFF" />
+          <Ionicons name="person" size={30} color="black" />
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>View Child's Information</Text>
           </View>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.card}>
-          <Icon name="access-time" size={30} color="#FFFFFF" />
+          <Ionicons name="time" size={30} color="black" />
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>View IN/OUT Times</Text>
           </View>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.card}>
-          <Icon name="event" size={30} color="#FFFFFF" />
+          <Ionicons name="calendar" size={30} color="black" />
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Apply for Leave</Text>
           </View>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.card}>
-          <Icon name="track-changes" size={30} color="#FFFFFF" />
+          <Ionicons name="analytics" size={30} color="black" />
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Track Leave Applications</Text>
           </View>

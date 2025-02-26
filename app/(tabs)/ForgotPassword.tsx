@@ -8,8 +8,10 @@ import {
   Alert,
   Image,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 
 const ForgotPasswordScreen: React.FC = () => {
+  const router = useRouter();
   const [email, setEmail] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -53,7 +55,7 @@ const ForgotPasswordScreen: React.FC = () => {
         <Text style={styles.submitButtonText}>Submit</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.backButton}>
+      <TouchableOpacity style={styles.backButton} onPress={() => router.push("/login" as any)}>
         <Text style={styles.backText}>⬅ Back to Login</Text>
       </TouchableOpacity>
     </View>
