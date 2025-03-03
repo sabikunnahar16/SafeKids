@@ -11,7 +11,7 @@ export default function SchoolAuthorityScreen() {
       <Text style={styles.title}>School Authority Dashboard</Text>
       <TouchableOpacity 
         style={styles.button} 
-        onPress={() => router.push("/root/ScanAndRecord" as any)}
+        onPress={() => router.push("/ScanAndRecord" as any)}
       >
         <Text style={styles.buttonText}>Scan & Record IN/OUT Time</Text>
       </TouchableOpacity>

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TextInput, ImageBackground, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from 'expo-router';
+import { auth, firestore } from '../../constants/FirebaseConfig';
 
 const LoginScreen = () => {
   const router = useRouter();

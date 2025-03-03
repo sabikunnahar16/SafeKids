@@ -2,6 +2,7 @@ import React from "react";
 import {  View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import { Link } from "expo-router";
 import Swiper from "react-native-swiper";
+
 export default function Index() {
   return (
      <ScrollView style={styles.container}>

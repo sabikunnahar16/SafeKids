@@ -1,11 +1,10 @@
-// AdminScreen.js
 import React from 'react';
-import { View, Text, Button, ScrollView, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AdminScreen() {
-  const navigation = useNavigation();
+  const router = useRouter();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -13,19 +12,27 @@ export default function AdminScreen() {
       <ScrollView>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Manage Class and Student Details</Text>
-          <Button title="View/Add/Update Classes" onPress={() => {}} />
+          <TouchableOpacity style={styles.button} onPress={() => router.push("../class")}>
+            <Text style={styles.buttonText}>View/Add/Update Classes</Text>
+          </TouchableOpacity>
         </View>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Parent Credentials</Text>
-          <Button title="Manage Parent Accounts" onPress={() => {}} />
+          <TouchableOpacity style={styles.button} onPress={() => router.push("../SchoolEntries")}>
+            <Text style={styles.buttonText}>Manage Parent Accounts</Text>
+          </TouchableOpacity>
         </View>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Student Attendance</Text>
-          <Button title="View IN/OUT Times" onPress={() => {}} />
+          <TouchableOpacity style={styles.button} onPress={() => router.push("../attendance")}>
+            <Text style={styles.buttonText}>View IN/OUT Times</Text>
+          </TouchableOpacity>
         </View>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Leave Applications</Text>
-          <Button title="Approve/Reject Leaves" onPress={() => {}} />
+          <TouchableOpacity style={styles.button} onPress={() => router.push("../LeavesScreen")}>
+            <Text style={styles.buttonText}>Approve/Reject Leaves</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -60,5 +67,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#4A4A4A',
     marginBottom: 8,
+  },
+  button: {
+    backgroundColor: '#1E90FF',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
