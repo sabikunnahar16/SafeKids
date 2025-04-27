@@ -1,82 +1,93 @@
-import React from 'react';
-import { useRouter } from 'expo-router';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, Pressable, Image } from "react-native";
+import { useRouter, usePathname } from "expo-router";
+import { useState } from "react";
 
-export default function AdminScreen() {
+interface MenuItem {
+  name: string;
+  route: string;
+  icon: any;
+}
+
+const menuItems: MenuItem[] = [
+  { name: "Class", route: "/class", icon: require("../assets/icons/class1.png") },
+  { name: "Student", route: "/student", icon: require("../assets/icons/clas.png") },
+  { name: "Bus", route: "/bus", icon: require("../assets/icons/bus.jpg") },
+  { name: "Bus Entries", route: "/busentries", icon: require("../assets/icons/bus.jpg") },
+  { name: "School Entries", route: "/schoolentries", icon: require("../assets/icons/school.png") },
+  { name: "Leaves", route: "/leaves", icon: require("../assets/icons/home.png") },
+  { name: "Logout", route: "/logout", icon: require("../assets/icons/logout.png") },
+];
+
+export default function Sidebar() {
   const router = useRouter();
+  const pathname = usePathname(); // current path
+  const [collapsed, setCollapsed] = useState(false); // for sidebar collapse
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Admin Dashboard</Text>
-      <ScrollView>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Manage Class and Student Details</Text>
-          <TouchableOpacity style={styles.button} onPress={() => router.push("../class")}>
-            <Text style={styles.buttonText}>View/Add/Update Classes</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Parent Credentials</Text>
-          <TouchableOpacity style={styles.button} onPress={() => router.push("../SchoolEntries")}>
-            <Text style={styles.buttonText}>Manage Parent Accounts</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Student Attendance</Text>
-          <TouchableOpacity style={styles.button} onPress={() => router.push("../attendance")}>
-            <Text style={styles.buttonText}>View IN/OUT Times</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Leave Applications</Text>
-          <TouchableOpacity style={styles.button} onPress={() => router.push("../LeavesScreen")}>
-            <Text style={styles.buttonText}>Approve/Reject Leaves</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <View style={[styles.sidebar, collapsed && styles.sidebarCollapsed]}>
+      {/* Collapse Toggle Button */}
+      <Pressable style={styles.collapseButton} onPress={() => setCollapsed(!collapsed)}>
+        <Text style={styles.collapseText}>{collapsed ? "➔" : "⇦"}</Text>
+      </Pressable>
+
+      {menuItems.map((item, index) => {
+        const isActive = pathname === item.route;
+        return (
+          <Pressable
+            key={index}
+            style={({ pressed }) => [
+              styles.menuItem,
+              (pressed || isActive) && styles.menuItemActive,
+            ]}
+            onPress={() => router.push(item.route as any)}
+
+          >
+            <Image source={item.icon} style={[styles.icon, collapsed && styles.iconCollapsed]} />
+            {!collapsed && <Text style={styles.menuText}>{item.name}</Text>}
+          </Pressable>
+        );
+      })}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F8F8',
-    padding: 16,
+  sidebar: {
+    width: 220,
+    backgroundColor: "#153370",
+    paddingVertical: 20,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#1E90FF',
-    marginBottom: 16,
+  sidebarCollapsed: {
+    width: 80,
   },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 15,
+    paddingHorizontal: 10,
   },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#4A4A4A',
-    marginBottom: 8,
+  menuItemActive: {
+    backgroundColor: "#D3D3D3", // Light Grey for active
   },
-  button: {
-    backgroundColor: '#1E90FF',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#FFFFFF',
+  menuText: {
+    color: "#fff",
+    marginLeft: 10,
     fontSize: 16,
-    fontWeight: '600',
+  },
+  icon: {
+    width: 24,
+    height: 24,
+    resizeMode: "contain",
+  },
+  iconCollapsed: {
+    marginLeft: 10,
+  },
+  collapseButton: {
+    padding: 10,
+    alignItems: "center",
+  },
+  collapseText: {
+    fontSize: 20,
+    color: "#fff",
   },
 });
