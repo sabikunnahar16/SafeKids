@@ -16,7 +16,7 @@ type WelcomeScreenProps = {
 const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
   return (
     <ImageBackground 
-      source={require("@/assets/images/pexels-lagosfoodbank-8054617.jpg")} // Ensure this path is correct
+      source={require("@/assets/images/junior.jpg")} // Ensure this path is correct
       style={styles.background}
     >
       <View style={styles.overlay}>

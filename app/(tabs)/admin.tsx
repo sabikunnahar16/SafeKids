@@ -9,19 +9,19 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { name: "Class", route: "/class", icon: require("../assets/icons/class1.png") },
-  { name: "Student", route: "/student", icon: require("../assets/icons/clas.png") },
-  { name: "Bus", route: "/bus", icon: require("../assets/icons/bus.jpg") },
-  { name: "Bus Entries", route: "/busentries", icon: require("../assets/icons/bus.jpg") },
-  { name: "School Entries", route: "/schoolentries", icon: require("../assets/icons/school.png") },
-  { name: "Leaves", route: "/leaves", icon: require("../assets/icons/home.png") },
-  { name: "Logout", route: "/logout", icon: require("../assets/icons/logout.png") },
+  { name: "Class", route: "/class", icon: require("../../assets/icons/class1.png") },
+  { name: "Student", route: "/student", icon: require("../../assets/icons/class.png") },
+  { name: "Bus", route: "/bus", icon: require("../../assets/icons/buss.png") },
+  { name: "Bus Entries", route: "/busentries", icon: require("../../assets/icons/bus.jpg") },
+  { name: "School Entries", route: "/schoolentries", icon: require("../../assets/icons/school.png") },
+  { name: "Leaves", route: "/leaves", icon: require("../../assets/icons/home.png") },
+  { name: "Logout", route: "/logout", icon: require("../../assets/icons/logout.png") },
 ];
 
 export default function Sidebar() {
   const router = useRouter();
-  const pathname = usePathname(); // current path
-  const [collapsed, setCollapsed] = useState(false); // for sidebar collapse
+  const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <View style={[styles.sidebar, collapsed && styles.sidebarCollapsed]}>
@@ -40,10 +40,18 @@ export default function Sidebar() {
               (pressed || isActive) && styles.menuItemActive,
             ]}
             onPress={() => router.push(item.route as any)}
-
           >
-            <Image source={item.icon} style={[styles.icon, collapsed && styles.iconCollapsed]} />
-            {!collapsed && <Text style={styles.menuText}>{item.name}</Text>}
+            <View style={styles.menuItemContent}>
+              <Image
+                source={item.icon}
+                style={[styles.icon, collapsed && styles.iconCollapsed]}
+              />
+              {!collapsed && (
+                <Text style={[styles.menuText, isActive && styles.menuTextActive]}>
+                  {item.name}
+                </Text>
+              )}
+            </View>
           </Pressable>
         );
       })}
@@ -53,41 +61,53 @@ export default function Sidebar() {
 
 const styles = StyleSheet.create({
   sidebar: {
-    width: 220,
+    width: 390,
+    height: "100%",
+    position: "absolute",
     backgroundColor: "#153370",
-    paddingVertical: 20,
+    paddingTop: 50,
+    paddingHorizontal: 10,
   },
   sidebarCollapsed: {
     width: 80,
   },
   menuItem: {
+    paddingVertical: 20,  // ⬅️ Increased vertical padding for better space
+    paddingHorizontal: 12,
+    marginVertical: 6,    // ⬅️ Add space between items
+    borderRadius: 12,
+  },
+  menuItemContent: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 15,
-    paddingHorizontal: 10,
   },
   menuItemActive: {
-    backgroundColor: "#D3D3D3", // Light Grey for active
-  },
-  menuText: {
-    color: "#fff",
-    marginLeft: 10,
-    fontSize: 16,
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
   },
   icon: {
-    width: 24,
-    height: 24,
+    width: 36,            // ⬅️ Make icons a little bigger
+    height: 23,
     resizeMode: "contain",
+    marginRight: 20,      // ⬅️ Slightly more gap between icon and text
   },
   iconCollapsed: {
-    marginLeft: 10,
+    marginRight: 0,
+  },
+  menuText: {
+    color: "#ffffff",
+    fontSize: 20,         // ⬅️ Make text slightly bigger
+    fontWeight: "600",
+  },
+  menuTextActive: {
+    color: "#153370",     // dark blue text when active
   },
   collapseButton: {
-    padding: 10,
+    paddingVertical: 40,
     alignItems: "center",
   },
   collapseText: {
-    fontSize: 20,
+    fontSize: 22,
     color: "#fff",
   },
 });
