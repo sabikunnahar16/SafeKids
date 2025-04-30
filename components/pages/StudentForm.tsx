@@ -1,39 +1,58 @@
-// components/pages/StudentForm.tsx
-import { View, Text, TextInput, StyleSheet, Pressable, Alert } from "react-native";
+import { View, Text, TextInput, StyleSheet, Pressable, Alert, ScrollView } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useState } from "react";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, doc, updateDoc } from "firebase/firestore"; // Added updateDoc
 import { firestore } from "../../constants/FirebaseConfig";
 
-export default function StudentForm({ onClose }: { onClose: () => void }) {
-  const [studentName, setStudentName] = useState("");
-  const [roll, setRoll] = useState("");
-  const [studentClass, setStudentClass] = useState("");
-  const [parentName, setParentName] = useState("");
-  const [parentContact, setParentContact] = useState("");
-  const [parentAddress, setParentAddress] = useState("");
+export default function StudentForm({
+  onClose,
+  existingStudent = null,
+}: {
+  onClose: () => void;
+  existingStudent?: any;
+}) {
+  const [studentName, setStudentName] = useState(existingStudent?.studentName || "");
+  const [roll, setRoll] = useState(existingStudent?.roll || "");
+  const [studentClass, setStudentClass] = useState(existingStudent?.studentClass || "");
+  const [parentName, setParentName] = useState(existingStudent?.parentName || "");
+  const [parentContact, setParentContact] = useState(existingStudent?.parentContact || "");
+  const [parentAddress, setParentAddress] = useState(existingStudent?.parentAddress || "");
 
   const handleSubmit = async () => {
     try {
-      await addDoc(collection(firestore, "students"), {
-        studentName,
-        roll,
-        studentClass,
-        parentName,
-        parentContact,
-        parentAddress,
-        createdAt: new Date(),
-      });
-      Alert.alert("Success", "Student added successfully!");
-      onClose(); // 🔥 after submit, close form!
+      if (existingStudent?.id) {
+        const studentRef = doc(firestore, "students", existingStudent.id);
+        await updateDoc(studentRef, {
+          studentName,
+          roll,
+          studentClass,
+          parentName,
+          parentContact,
+          parentAddress,
+          updatedAt: new Date(),
+        });
+        Alert.alert("Updated", "Student updated successfully!");
+      } else {
+        await addDoc(collection(firestore, "students"), {
+          studentName,
+          roll,
+          studentClass,
+          parentName,
+          parentContact,
+          parentAddress,
+          createdAt: new Date(),
+        });
+        Alert.alert("Added", "Student added successfully!");
+      }
+      onClose();
     } catch (error) {
-      console.error("Error adding student: ", error);
-      Alert.alert("Error", "Failed to add student.");
+      console.error("Error saving student: ", error);
+      Alert.alert("Error", "Failed to save student.");
     }
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Add New Student</Text>
 
       <TextInput
@@ -41,14 +60,13 @@ export default function StudentForm({ onClose }: { onClose: () => void }) {
         value={studentName}
         onChangeText={setStudentName}
         style={styles.input}
-        placeholderTextColor="#ccc"
       />
       <TextInput
         placeholder="Roll Number"
         value={roll}
         onChangeText={setRoll}
         style={styles.input}
-        placeholderTextColor="#ccc"
+        keyboardType="numeric"
       />
       <View style={styles.pickerContainer}>
         <Picker
@@ -57,35 +75,33 @@ export default function StudentForm({ onClose }: { onClose: () => void }) {
           style={styles.picker}
         >
           <Picker.Item label="Select Class" value="" />
-          <Picker.Item label="Class 1-1" value="Class" />
-          <Picker.Item label="Class 1-2" value="Class " />
-          <Picker.Item label="Class 2-1" value="Class 2" />
-          <Picker.Item label="Class 2-2" value="Class 2" />
-          <Picker.Item label="Class 3-1" value="Class 3" />
-          <Picker.Item label="Class 3-2" value="Class 3" />
-          <Picker.Item label="Class 4-1" value="Class" />
-          <Picker.Item label="Class 4-2" value="Class " />
-          <Picker.Item label="Class 5-1" value="Class " />
-          <Picker.Item label="Class 5-2" value="Class " />
-          <Picker.Item label="Class 6-1" value="Class " />
-          <Picker.Item label="Class 6-2" value="Class " />
-          <Picker.Item label="Class 7-1" value="Class " /> 
-          <Picker.Item label="Class 8-1" value="Class " />
-          <Picker.Item label="Class 8-2" value="Class " />
-          <Picker.Item label="Class 9-1" value="Class " />
-          <Picker.Item label="Class 9-2" value="Class " />
-          <Picker.Item label="Class 10-1" value="Class " />
-          <Picker.Item label="Class 10-2" value="Class " />
-
-          {/* more classes */}
+          <Picker.Item label="1-1" value="1-1" />
+          <Picker.Item label="1-2" value="1-2" />
+          <Picker.Item label="2-1" value="2-1" />
+          <Picker.Item label="2-2" value="2-2" />
+          <Picker.Item label="3-1" value="3-1" />
+          <Picker.Item label="3-2" value="3-2" />
+          <Picker.Item label="4-1" value="4-1" />
+          <Picker.Item label="4-2" value="4-2" />
+          <Picker.Item label="5-1" value="5-1" />
+          <Picker.Item label="5-2" value="5-2" />
+          <Picker.Item label="6-1" value="6-1" />
+          <Picker.Item label="6-2" value="6-2" />
+          <Picker.Item label="7-1" value="7-1" />
+          <Picker.Item label="8-1" value="8-1" />
+          <Picker.Item label="8-2" value="8-2" />
+          <Picker.Item label="9-1" value="9-1" />
+          <Picker.Item label="9-2" value="9-2" />
+          <Picker.Item label="10-1" value="10-1" />
+          <Picker.Item label="10-2" value="10-2" />
         </Picker>
       </View>
+
       <TextInput
         placeholder="Parent Name"
         value={parentName}
         onChangeText={setParentName}
         style={styles.input}
-        placeholderTextColor="#ccc"
       />
       <TextInput
         placeholder="Parent Contact"
@@ -93,7 +109,6 @@ export default function StudentForm({ onClose }: { onClose: () => void }) {
         onChangeText={setParentContact}
         style={styles.input}
         keyboardType="phone-pad"
-        placeholderTextColor="#ccc"
       />
       <TextInput
         placeholder="Parent Address"
@@ -101,57 +116,58 @@ export default function StudentForm({ onClose }: { onClose: () => void }) {
         onChangeText={setParentAddress}
         style={[styles.input, { height: 80 }]}
         multiline
-        placeholderTextColor="#ccc"
       />
 
       <Pressable style={styles.button} onPress={handleSubmit}>
         <Text style={styles.buttonText}>Submit</Text>
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#153370",
     padding: 20,
+    backgroundColor: "#fff",
+    flexGrow: 1,
   },
   title: {
     fontSize: 24,
-    color: "white",
+    color: "#153370",
     marginBottom: 20,
     textAlign: "center",
     fontWeight: "bold",
   },
   input: {
     borderWidth: 1,
-    borderColor: "#fff",
-    borderRadius: 8,
+    borderColor: "#ccc",
+    borderRadius: 10,
     padding: 12,
     marginBottom: 15,
-    color: "#fff",
+    fontSize: 16,
+    color: "#333",
+    backgroundColor: "#f9f9f9",
   },
   pickerContainer: {
     borderWidth: 1,
-    borderColor: "#fff",
-    borderRadius: 8,
+    borderColor: "#ccc",
+    borderRadius: 10,
     marginBottom: 15,
-    overflow: "hidden",
+    backgroundColor: "#f9f9f9",
   },
   picker: {
-    color: "#fff",
-    backgroundColor: "#153370",
+    fontSize: 16,
+    color: "#333",
   },
   button: {
-    backgroundColor: "#1c4587",
+    backgroundColor: "#153370",
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: "center",
-    marginTop: 20,
+    marginTop: 10,
   },
   buttonText: {
-    color: "white",
+    color: "#fff",
     fontWeight: "bold",
     fontSize: 18,
   },

@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, FlatList, Pressable, Modal, TextInput, Alert, T
 import { useState, useEffect } from "react";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 import { firestore } from "../constants/FirebaseConfig";
-import StudentForm from "../components/pages/StudentForm"; // Adjust the path
+import StudentForm from "../components/pages/StudentForm"; // Adjust if needed
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 
@@ -11,6 +11,8 @@ export default function StudentPage() {
   const [students, setStudents] = useState<any[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [classQuery, setClassQuery] = useState("");
+  const [editingStudent, setEditingStudent] = useState(null);
 
   const fetchStudents = async () => {
     const snapshot = await getDocs(collection(firestore, "students"));
@@ -24,6 +26,7 @@ export default function StudentPage() {
 
   const handleFormClose = () => {
     setModalVisible(false);
+    setEditingStudent(null);
     fetchStudents();
   };
 
@@ -37,9 +40,11 @@ export default function StudentPage() {
     }
   };
 
-  const filteredStudents = students.filter((student) =>
-    student.studentName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredStudents = students.filter((student) => {
+    const matchesName = student.studentName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesClass = student.studentClass.toLowerCase().includes(classQuery.toLowerCase());
+    return matchesName && matchesClass;
+  });
 
   return (
     <View style={styles.container}>
@@ -51,12 +56,19 @@ export default function StudentPage() {
         <Text style={styles.headerTitle}>Students</Text>
       </View>
 
-      {/* Search Bar */}
+      {/* Search Inputs */}
       <TextInput
         style={styles.searchInput}
         placeholder="Search student..."
         value={searchQuery}
         onChangeText={setSearchQuery}
+        placeholderTextColor="#999"
+      />
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Search class..."
+        value={classQuery}
+        onChangeText={setClassQuery}
         placeholderTextColor="#999"
       />
 
@@ -72,9 +84,14 @@ export default function StudentPage() {
             <Text style={styles.studentSubText}><Text style={styles.bold}>Parent:</Text> {item.parentName}</Text>
             <Text style={styles.studentSubText}><Text style={styles.bold}>Parent Contact:</Text> {item.parentContact}</Text>
 
-            {/* Update & Delete Buttons */}
             <View style={styles.buttonRow}>
-              <Pressable style={styles.updateButton} onPress={() => {/* open update logic (future) */}}>
+              <Pressable
+                style={styles.updateButton}
+                onPress={() => {
+                  setEditingStudent(item);
+                  setModalVisible(true);
+                }}
+              >
                 <Text style={styles.buttonText}>Update</Text>
               </Pressable>
               <Pressable style={styles.deleteButton} onPress={() => handleDelete(item.id)}>
@@ -86,13 +103,19 @@ export default function StudentPage() {
       />
 
       {/* Floating Add Button */}
-      <Pressable style={styles.floatingButton} onPress={() => setModalVisible(true)}>
+      <Pressable
+        style={styles.floatingButton}
+        onPress={() => {
+          setEditingStudent(null);
+          setModalVisible(true);
+        }}
+      >
         <Ionicons name="add" size={32} color="#fff" />
       </Pressable>
 
-      {/* Modal to Add Student */}
+      {/* Modal for Form */}
       <Modal visible={modalVisible} animationType="slide">
-        <StudentForm onClose={handleFormClose} />
+        <StudentForm onClose={handleFormClose} existingStudent={editingStudent} />
       </Modal>
     </View>
   );
@@ -121,7 +144,7 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 8,
     padding: 10,
-    marginBottom: 15,
+    marginBottom: 10,
     color: "#333",
   },
   studentItem: {
