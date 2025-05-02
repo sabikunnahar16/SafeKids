@@ -2,26 +2,28 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function SchoolEntriesScreen() {
+const ViewInOut = () => {
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>School Entries Screen</Text>
-      {/* Add your school entries screen content here */}
+      <Text style={styles.header}>View IN/OUT Times</Text>
+      {/* Add content for viewing IN/OUT times */}
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F8F8',
-    padding: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
-  title: {
+  header: {
     fontSize: 24,
     fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#1E90FF',
-    marginBottom: 16,
+    color: 'black',
+    marginBottom: 20,
   },
 });
+
+export default ViewInOut;

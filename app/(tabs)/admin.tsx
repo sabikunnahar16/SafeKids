@@ -11,10 +11,10 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { name: "Class", route: "/class", icon: require("../../assets/icons/class1.png") },
   { name: "Student", route: "/student", icon: require("../../assets/icons/class.png") },
-  { name: "Bus", route: "/bus", icon: require("../../assets/icons/buss.png") },
+  { name: "Bus", route: "/Bus", icon: require("../../assets/icons/buss.png") },
   { name: "Bus Entries", route: "/busentries", icon: require("../../assets/icons/bus.jpg") },
   { name: "School Entries", route: "/schoolentries", icon: require("../../assets/icons/school.png") },
-  { name: "Leaves", route: "/leaves", icon: require("../../assets/icons/home.png") },
+  { name: "Leaves", route: "/LeaveAdmin", icon: require("../../assets/icons/home.png") },
   { name: "Logout", route: "/logout", icon: require("../../assets/icons/logout.png") },
 ];
 
@@ -39,7 +39,9 @@ export default function Sidebar() {
               styles.menuItem,
               (pressed || isActive) && styles.menuItemActive,
             ]}
-            onPress={() => router.push(item.route as any)}
+            onPress={() => {
+              router.push(item.route as any);
+            }}
           >
             <View style={styles.menuItemContent}>
               <Image
@@ -72,9 +74,9 @@ const styles = StyleSheet.create({
     width: 80,
   },
   menuItem: {
-    paddingVertical: 20,  // ⬅️ Increased vertical padding for better space
+    paddingVertical: 20,
     paddingHorizontal: 12,
-    marginVertical: 6,    // ⬅️ Add space between items
+    marginVertical: 6,
     borderRadius: 12,
   },
   menuItemContent: {
@@ -86,21 +88,21 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   icon: {
-    width: 36,            // ⬅️ Make icons a little bigger
+    width: 36,
     height: 23,
     resizeMode: "contain",
-    marginRight: 20,      // ⬅️ Slightly more gap between icon and text
+    marginRight: 20,
   },
   iconCollapsed: {
     marginRight: 0,
   },
   menuText: {
     color: "#ffffff",
-    fontSize: 20,         // ⬅️ Make text slightly bigger
+    fontSize: 20,
     fontWeight: "600",
   },
   menuTextActive: {
-    color: "#153370",     // dark blue text when active
+    color: "#153370",
   },
   collapseButton: {
     paddingVertical: 40,
