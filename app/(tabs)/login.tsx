@@ -13,13 +13,13 @@ const LoginScreen = () => {
       case "parent":
         router.push("/parent" as any);
         break;
-      case "School Authority":
+      case "SchoolAuth":
         router.push("/SchoolAuth" as any);
         break;
       case "admin":
         router.push("/admin");
         break;
-      case "Bus Driver":
+      case "BusDriver":
         router.push("/BusDriver" as any);
         break;
       default:

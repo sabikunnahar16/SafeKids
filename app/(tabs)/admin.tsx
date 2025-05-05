@@ -16,6 +16,8 @@ const menuItems: MenuItem[] = [
   { name: "School Entries", route: "/schoolentries", icon: require("../../assets/icons/school.png") },
   { name: "Leaves", route: "/LeaveAdmin", icon: require("../../assets/icons/home.png") },
   { name: "Logout", route: "/logout", icon: require("../../assets/icons/logout.png") },
+  { name: "QR Code Generator", route: "/QRCodeGenerator", icon: require("../../assets/icons/qr.png") },
+  { name: "Students", route: "/StudentsScreen", icon: require("../../assets/icons/student.png") },
 ];
 
 export default function Sidebar() {
