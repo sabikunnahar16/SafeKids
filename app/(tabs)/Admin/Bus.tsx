@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, FlatList, Pressable, TextInput, Modal, Alert } from "react-native";
 import { useEffect, useState } from "react";
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
-import { firestore } from "../constants/FirebaseConfig";
+import { firestore } from "../../../constants/FirebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function BusPage() {

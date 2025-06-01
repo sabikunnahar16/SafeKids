@@ -21,32 +21,10 @@ export default function SchoolAuth() {
         style={styles.button} 
         onPress={() => {
           try {
-            router.push('/(tabs)/ScanRecord' as any); // Ensure this path exists
+            router.push('./ScanRecord' as any); // Ensure this path exists
           } catch (error) {
             console.error('Navigation error:', error);
-            Alert.alert('Error'
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              , 'Failed to navigate to ScanRecord.');
+            Alert.alert('Error', 'Failed to navigate to ScanRecord.');
           }
         }}
       >

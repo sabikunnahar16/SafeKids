@@ -2,11 +2,11 @@ import { View, Text, TextInput, StyleSheet, Pressable, Alert } from "react-nativ
 import { Picker } from "@react-native-picker/picker";
 import { useState } from "react";
 import { addDoc, collection } from "firebase/firestore";
-import { auth, firestore } from '../../constants/FirebaseConfig'; // Corrected import path
+import { auth, firestore } from '../../../constants/FirebaseConfig'; // Corrected import path
 
 export default function StudentForm() {
   const [studentName, setStudentName] = useState("");
-  const [roll, setRoll] = useState("");
+  const [id, setid] = useState("");
   const [studentClass, setStudentClass] = useState("");
   const [parentName, setParentName] = useState("");
   const [parentContact, setParentContact] = useState("");
@@ -16,7 +16,7 @@ export default function StudentForm() {
     try {
       await addDoc(collection(firestore, "students"), {
         studentName,
-        roll,
+        id,
         studentClass,
         parentName,
         parentContact,
@@ -26,7 +26,7 @@ export default function StudentForm() {
       Alert.alert("Success", "Student details added successfully!");
       // Clear form
       setStudentName("");
-      setRoll("");
+      setid("");
       setStudentClass("");
       setParentName("");
       setParentContact("");
@@ -50,9 +50,9 @@ export default function StudentForm() {
       />
 
       <TextInput
-        placeholder="Roll Number"
-        value={roll}
-        onChangeText={setRoll}
+        placeholder="id number"
+        value={id}
+        onChangeText={setid}
         style={styles.input}
         placeholderTextColor="#ccc"
       />

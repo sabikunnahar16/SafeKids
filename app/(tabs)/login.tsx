@@ -11,16 +11,16 @@ const LoginScreen = () => {
   const handleLogin = () => {
     switch (userType) {
       case "parent":
-        router.push("/parent" as any);
+        router.push("../parent_dash/parent" as any);
         break;
       case "SchoolAuth":
-        router.push("/SchoolAuth" as any);
+        router.push("../school_auth/SchoolAuth" as any);
         break;
       case "admin":
-        router.push("/admin");
+        router.push("../Admin/admin" as any );
         break;
       case "BusDriver":
-        router.push("/BusDriver" as any);
+        router.push("../bus/BusDriver" as any);
         break;
       default:
         break;

@@ -1,8 +1,19 @@
-import { View, Text, TextInput, StyleSheet, Pressable, Alert, ScrollView } from "react-native";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Pressable,
+  Alert,
+  ScrollView,
+  Image,
+} from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { useState } from "react";
-import { addDoc, collection, doc, updateDoc } from "firebase/firestore"; // Added updateDoc
-import { firestore } from "../../constants/FirebaseConfig";
+import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
+import { firestore } from "../../../constants/FirebaseConfig";
+import * as ImagePicker from "expo-image-picker";
+import QRCode from "react-native-qrcode-svg";
 
 export default function StudentForm({
   onClose,
@@ -12,38 +23,88 @@ export default function StudentForm({
   existingStudent?: any;
 }) {
   const [studentName, setStudentName] = useState(existingStudent?.studentName || "");
-  const [roll, setRoll] = useState(existingStudent?.roll || "");
+  const [id, setId] = useState(existingStudent?.id || "");
   const [studentClass, setStudentClass] = useState(existingStudent?.studentClass || "");
   const [parentName, setParentName] = useState(existingStudent?.parentName || "");
   const [parentContact, setParentContact] = useState(existingStudent?.parentContact || "");
   const [parentAddress, setParentAddress] = useState(existingStudent?.parentAddress || "");
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [qrValue, setQrValue] = useState<string | null>(null);
+
+  const handleImagePick = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (!permissionResult.granted) {
+        Alert.alert("Permission Denied", "You need to allow access to the media library.");
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        setImageUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Image picker error: ", error);
+      Alert.alert("Error", "Failed to pick an image.");
+    }
+  };
+
+  const handleGenerateQRCode = () => {
+    if (!studentName || !id || !studentClass || !parentName || !parentContact || !parentAddress) {
+      Alert.alert("Missing Information", "Please fill in all the fields before generating the QR code.");
+      return;
+    }
+
+    const studentData = {
+      studentName,
+      id,
+      studentClass,
+      parentName,
+      parentContact,
+      parentAddress,
+      imageUri,
+    };
+
+    setQrValue(JSON.stringify(studentData));
+    Alert.alert("QR Code Generated", "The QR code has been successfully generated.");
+  };
 
   const handleSubmit = async () => {
+    if (!qrValue) {
+      Alert.alert("QR Code Missing", "Please generate the QR code before submitting the form.");
+      return;
+    }
+
     try {
+      const studentData = {
+        studentName,
+        id,
+        studentClass,
+        parentName,
+        parentContact,
+        parentAddress,
+        imageUri,
+        qrValue,
+        createdAt: new Date(),
+      };
+
       if (existingStudent?.id) {
         const studentRef = doc(firestore, "students", existingStudent.id);
         await updateDoc(studentRef, {
-          studentName,
-          roll,
-          studentClass,
-          parentName,
-          parentContact,
-          parentAddress,
+          ...studentData,
           updatedAt: new Date(),
         });
         Alert.alert("Updated", "Student updated successfully!");
       } else {
-        await addDoc(collection(firestore, "students"), {
-          studentName,
-          roll,
-          studentClass,
-          parentName,
-          parentContact,
-          parentAddress,
-          createdAt: new Date(),
-        });
+        await addDoc(collection(firestore, "students"), studentData);
         Alert.alert("Added", "Student added successfully!");
       }
+
       onClose();
     } catch (error) {
       console.error("Error saving student: ", error);
@@ -53,7 +114,7 @@ export default function StudentForm({
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Add New Student</Text>
+      <Text style={styles.title}>Student Registration</Text>
 
       <TextInput
         placeholder="Student Name"
@@ -62,11 +123,11 @@ export default function StudentForm({
         style={styles.input}
       />
       <TextInput
-        placeholder="Roll Number"
-        value={roll}
-        onChangeText={setRoll}
+        placeholder="ID"
+        value={id}
+        onChangeText={setId}
         style={styles.input}
-        keyboardType="numeric"
+        keyboardType="default"
       />
       <View style={styles.pickerContainer}>
         <Picker
@@ -118,6 +179,25 @@ export default function StudentForm({
         multiline
       />
 
+      <Pressable style={styles.button} onPress={handleImagePick}>
+        <Text style={styles.buttonText}>Pick Image</Text>
+      </Pressable>
+
+      {imageUri && (
+        <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+      )}
+
+      <Pressable style={styles.button} onPress={handleGenerateQRCode}>
+        <Text style={styles.buttonText}>Generate QR Code</Text>
+      </Pressable>
+
+      {qrValue && (
+        <View style={styles.qrContainer}>
+          <Text style={styles.qrTitle}>Generated QR Code:</Text>
+          <QRCode value={qrValue} size={200} />
+        </View>
+      )}
+
       <Pressable style={styles.button} onPress={handleSubmit}>
         <Text style={styles.buttonText}>Submit</Text>
       </Pressable>
@@ -128,39 +208,39 @@ export default function StudentForm({
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: "#f9f9f9",
     flexGrow: 1,
   },
   title: {
-    fontSize: 24,
-    color: "#153370",
+    fontSize: 28,
+    color: "#2c3e50",
     marginBottom: 20,
     textAlign: "center",
     fontWeight: "bold",
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#bdc3c7",
     borderRadius: 10,
     padding: 12,
     marginBottom: 15,
     fontSize: 16,
-    color: "#333",
-    backgroundColor: "#f9f9f9",
+    color: "#34495e",
+    backgroundColor: "#ecf0f1",
   },
   pickerContainer: {
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#bdc3c7",
     borderRadius: 10,
     marginBottom: 15,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#ecf0f1",
   },
   picker: {
     fontSize: 16,
-    color: "#333",
+    color: "#34495e",
   },
   button: {
-    backgroundColor: "#153370",
+    backgroundColor: "#3498db",
     padding: 15,
     borderRadius: 10,
     alignItems: "center",
@@ -170,5 +250,21 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 18,
+  },
+  imagePreview: {
+    width: 200,
+    height: 200,
+    borderRadius: 10,
+    marginTop: 10,
+    alignSelf: "center",
+  },
+  qrContainer: {
+    marginTop: 20,
+    alignItems: "center",
+  },
+  qrTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
   },
 });

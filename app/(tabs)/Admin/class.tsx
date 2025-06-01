@@ -1,10 +1,10 @@
 import { View, Text, StyleSheet, FlatList, Pressable, Modal, TextInput, Alert, TouchableOpacity } from "react-native";
 import { useState, useEffect } from "react";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
-import { firestore } from "../constants/FirebaseConfig";
-import StudentForm from "../components/pages/StudentForm"; // Adjust if needed
+import { firestore } from "../../../constants/FirebaseConfig";
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
+import StudentForm from "./StudentForm"; // Adjust the path based on the actual location of StudentForm
 
 export default function StudentPage() {
   const router = useRouter();
@@ -50,7 +50,7 @@ export default function StudentPage() {
     <View style={styles.container}>
       {/* Top bar */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push("/(tabs)/admin")}>
+        <TouchableOpacity onPress={() => router.push("./admin")}>
           <Ionicons name="menu" size={30} color="#153370" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Students</Text>

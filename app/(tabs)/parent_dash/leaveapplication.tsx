@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { collection, addDoc, getDocs } from "firebase/firestore";
-import { firestore } from "../constants/FirebaseConfig";
+import { firestore } from "../../../constants/FirebaseConfig";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 

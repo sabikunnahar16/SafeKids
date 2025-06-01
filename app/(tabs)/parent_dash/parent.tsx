@@ -15,7 +15,7 @@ const ParentDashboard = () => {
       <SafeAreaView style={styles.container}>
         <Text style={styles.header}>Parent Dashboard</Text>
 
-        <TouchableOpacity style={styles.card} onPress={() => router.push("/viewChildInfo")}>
+        <TouchableOpacity style={styles.card} onPress={() => router.push("./viewChildInfo")}>
           <Ionicons name="person" size={30} color="black" />
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>View Child's Information</Text>
@@ -29,7 +29,7 @@ const ParentDashboard = () => {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.card} onPress={() => router.push("/leaveapplication")}>
+        <TouchableOpacity style={styles.card} onPress={() => router.push("./leaveapplication")}>
           <Ionicons name="calendar" size={30} color="black" />
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Apply for Leave</Text>
