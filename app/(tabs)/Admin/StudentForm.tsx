@@ -12,7 +12,8 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
-import { firestore } from "../../../constants/FirebaseConfig";
+import { firestore,storage } from "../../../constants/FirebaseConfig";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import * as ImagePicker from "expo-image-picker";
 import QRCode from "react-native-qrcode-svg";
 
@@ -29,7 +30,7 @@ export default function StudentForm({
   const [parentName, setParentName] = useState(existingStudent?.parentName || "");
   const [parentContact, setParentContact] = useState(existingStudent?.parentContact || "");
   const [parentAddress, setParentAddress] = useState(existingStudent?.parentAddress || "");
-  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [imageUri, setImageUri] = useState<string | null>(existingStudent?.imageUri || null);
   const [qrValue, setQrValue] = useState<string | null>(null);
 
   const handleImagePick = async () => {
@@ -82,14 +83,33 @@ export default function StudentForm({
     }
 
     try {
+      let uploadedImageUrl = imageUri;
+      if (imageUri && !imageUri.startsWith("http")) {
+        // Upload image to Firebase Storage
+        const response = await fetch(imageUri);
+        const blob = await response.blob();
+        const storage = getStorage();
+        const uniqueId = id || Date.now().toString();
+        const storageRef = ref(storage, `students/${uniqueId}.jpg`);
+        await uploadBytes(storageRef, blob);
+        uploadedImageUrl = await getDownloadURL(storageRef);
+      }
+
+      // If adding a new student, generate a unique id for the student
+      let studentDocId = id;
+      if (!existingStudent?.id && !id) {
+        studentDocId = Date.now().toString();
+        setId(studentDocId);
+      }
+
       const studentData = {
         studentName,
-        id,
+        id: studentDocId,
         studentClass,
         parentName,
         parentContact,
         parentAddress,
-        imageUri,
+        imageUri: uploadedImageUrl,
         qrValue,
         createdAt: new Date(),
       };
@@ -117,96 +137,90 @@ export default function StudentForm({
     <ImageBackground source={require("@/assets/images/pexels-julia-m-cameron-6994992.jpg")} style={styles.bgImage} resizeMode="cover">
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Student Registration</Text>
-
-        <TextInput
-          placeholder="Student Name"
-          value={studentName}
-          onChangeText={setStudentName}
-          style={styles.input}
-        />
-        <TextInput
-          placeholder="ID"
-          value={id}
-          onChangeText={setId}
-          style={styles.input}
-          keyboardType="default"
-        />
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={studentClass}
-            onValueChange={(itemValue) => setStudentClass(itemValue)}
-            style={styles.picker}
-          >
-            <Picker.Item label="Select Class" value="" />
-            <Picker.Item label="1-1" value="1-1" />
-            <Picker.Item label="1-2" value="1-2" />
-            <Picker.Item label="2-1" value="2-1" />
-            <Picker.Item label="2-2" value="2-2" />
-            <Picker.Item label="3-1" value="3-1" />
-            <Picker.Item label="3-2" value="3-2" />
-            <Picker.Item label="4-1" value="4-1" />
-            <Picker.Item label="4-2" value="4-2" />
-            <Picker.Item label="5-1" value="5-1" />
-            <Picker.Item label="5-2" value="5-2" />
-            <Picker.Item label="6-1" value="6-1" />
-            <Picker.Item label="6-2" value="6-2" />
-            <Picker.Item label="7-1" value="7-1" />
-            <Picker.Item label="8-1" value="8-1" />
-            <Picker.Item label="8-2" value="8-2" />
-            <Picker.Item label="9-1" value="9-1" />
-            <Picker.Item label="9-2" value="9-2" />
-            <Picker.Item label="10-1" value="10-1" />
-            <Picker.Item label="10-2" value="10-2" />
-          </Picker>
-        </View>
-
-        <TextInput
-          placeholder="Parent Name"
-          value={parentName}
-          onChangeText={setParentName}
-          style={styles.input}
-        />
-        <TextInput
-          placeholder="Parent Contact"
-          value={parentContact}
-          onChangeText={setParentContact}
-          style={styles.input}
-          keyboardType="phone-pad"
-        />
-        <TextInput
-          placeholder="Parent Address"
-          value={parentAddress}
-          onChangeText={setParentAddress}
-          style={[styles.input, { height: 80 }]}
-          multiline
-        />
-
-        <Pressable style={styles.smallButton} onPress={handleImagePick}>
-          <Text style={styles.buttonText}>Pick Image</Text>
-        </Pressable>
-
-        {imageUri && (
-          <Image source={{ uri: imageUri }} style={styles.imagePreview} />
-        )}
-
-        <Pressable style={styles.smallButton} onPress={handleGenerateQRCode}>
-          <Text style={styles.buttonText}>Generate QR Code</Text>
-        </Pressable>
-
-        {qrValue && (
-          <View style={styles.qrContainer}>
-            <Text style={styles.qrTitle}>Generated QR Code:</Text>
-            <QRCode value={qrValue} size={200} />
+        <View style={styles.formInner}> {/* New wrapper for alignment */}
+          <TextInput
+            placeholder="Student Name"
+            value={studentName}
+            onChangeText={setStudentName}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="ID"
+            value={id}
+            onChangeText={setId}
+            style={styles.input}
+            keyboardType="default"
+          />
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={studentClass}
+              onValueChange={(itemValue) => setStudentClass(itemValue)}
+              style={styles.picker}
+            >
+              <Picker.Item label="Select Class" value="" />
+              <Picker.Item label="1-1" value="1-1" />
+              <Picker.Item label="1-2" value="1-2" />
+              <Picker.Item label="2-1" value="2-1" />
+              <Picker.Item label="2-2" value="2-2" />
+              <Picker.Item label="3-1" value="3-1" />
+              <Picker.Item label="3-2" value="3-2" />
+              <Picker.Item label="4-1" value="4-1" />
+              <Picker.Item label="4-2" value="4-2" />
+              <Picker.Item label="5-1" value="5-1" />
+              <Picker.Item label="5-2" value="5-2" />
+              <Picker.Item label="6-1" value="6-1" />
+              <Picker.Item label="6-2" value="6-2" />
+              <Picker.Item label="7-1" value="7-1" />
+              <Picker.Item label="8-1" value="8-1" />
+              <Picker.Item label="8-2" value="8-2" />
+              <Picker.Item label="9-1" value="9-1" />
+              <Picker.Item label="9-2" value="9-2" />
+              <Picker.Item label="10-1" value="10-1" />
+              <Picker.Item label="10-2" value="10-2" />
+            </Picker>
           </View>
-        )}
-
-        <Pressable style={styles.smallButton} onPress={handleSubmit}>
-          <Text style={styles.buttonText}>Submit</Text>
-        </Pressable>
-
-        <Pressable style={[styles.smallButton, { backgroundColor: '#888', marginTop: 8 }]} onPress={onClose}>
-          <Text style={styles.buttonText}>Cancel</Text>
-        </Pressable>
+          <TextInput
+            placeholder="Parent Name"
+            value={parentName}
+            onChangeText={setParentName}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="Parent Contact"
+            value={parentContact}
+            onChangeText={setParentContact}
+            style={styles.input}
+            keyboardType="phone-pad"
+          />
+          <TextInput
+            placeholder="Parent Address"
+            value={parentAddress}
+            onChangeText={setParentAddress}
+            style={[styles.input, { height: 80 }]}
+            multiline
+          />
+          <Pressable style={styles.smallButton} onPress={handleImagePick}>
+            <Text style={styles.buttonText}>Pick Image</Text>
+          </Pressable>
+          {imageUri && (
+            <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+          )}
+          <Pressable style={styles.smallButton} onPress={handleGenerateQRCode}>
+            <Text style={styles.buttonText}>QR Code</Text>
+          </Pressable>
+          {qrValue && (
+            <View style={styles.qrContainer}>
+              <Text style={styles.qrTitle}>Generated QR Code:</Text>
+              <QRCode value={qrValue} size={200} />
+            </View>
+          )}
+          <Pressable style={styles.smallButton} onPress={handleSubmit}>
+            <Text style={styles.buttonText}>Submit</Text>
+          </Pressable>
+          <Pressable style={[styles.smallButton, { backgroundColor: '#888', marginTop: 8 }]} onPress={onClose}>
+            <Text style={styles.buttonText}>Cancel</Text>
+          </Pressable>
+        </View>
       </ScrollView>
     </ImageBackground>
   );
@@ -225,6 +239,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "bold",
   },
+  formInner: {
+    width: '100%',
+    maxWidth: 350,
+    alignSelf: 'center',
+    alignItems: 'center',
+  },
   input: {
     borderWidth: 1,
     borderColor: "#bdc3c7",
@@ -234,6 +254,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#34495e",
     backgroundColor: "#ecf0f1",
+    width: '100%',
+    maxWidth: 320,
+    alignSelf: 'center',
   },
   pickerContainer: {
     borderWidth: 1,
@@ -241,6 +264,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 15,
     backgroundColor: "#ecf0f1",
+    width: '100%',
+    maxWidth: 320,
+    alignSelf: 'center',
   },
   picker: {
     fontSize: 16,
@@ -254,7 +280,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
     alignSelf: 'center',
-    minWidth: 100,
+    minWidth: 120,
+    maxWidth: 200,
   },
   buttonText: {
     color: "#fff",
