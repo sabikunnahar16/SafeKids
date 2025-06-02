@@ -24,8 +24,8 @@ const menuItems: MenuItem[] = [
   { name: "Logout", route: "/logout", icon: require("@/assets/icons/logout.png") },
 ];
 
-const SIDEBAR_WIDTH = 80;
-const SIDEBAR_EXPANDED_WIDTH = 220;
+const SIDEBAR_WIDTH = 60;
+const SIDEBAR_EXPANDED_WIDTH = 142;
 
 export default function AdminSidebarAndDashboard() {
   const router = useRouter();
@@ -84,10 +84,11 @@ export default function AdminSidebarAndDashboard() {
                   styles.menuItem,
                   (pressed || isActive) && styles.menuItemActive,
                   collapsed && styles.menuItemCollapsed,
+                  { alignItems: 'flex-start', justifyContent: 'flex-start', flexDirection: 'row' }, // force left alignment
                 ]}
                 onPress={() => router.push(item.route as any)}
               >
-                <View style={styles.menuItemContent}>
+                <View style={[styles.menuItemContent, { justifyContent: 'flex-start', alignItems: 'center', flexDirection: 'row' }]}> 
                   <Image
                     source={item.icon}
                     style={[styles.icon, collapsed && styles.iconCollapsed]}
@@ -114,84 +115,93 @@ export default function AdminSidebarAndDashboard() {
             </View>
           ))}
         </View>
-        <View style={styles.chartsGrid}>
-          <View style={styles.chartBox}>
-            <Text style={styles.chartTitle}>User Bar Chart</Text>
-            <BarChart
-              data={{
-                labels: userStats.map(u => u.label),
-                datasets: [{ data: userStats.map(u => u.count) }],
-              }}
-              width={Dimensions.get("window").width / 2 - 60}
-              height={220}
-              yAxisLabel=""
-              yAxisSuffix=""
-              chartConfig={{
-                backgroundColor: "#fff",
-                backgroundGradientFrom: "#fff",
-                backgroundGradientTo: "#fff",
-                decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(30, 41, 59, ${opacity})`,
-                style: { borderRadius: 16 },
-                propsForDots: { r: "6", strokeWidth: "2", stroke: "#3B82F6" },
-              }}
-              style={{ borderRadius: 16 }}
-              fromZero
-            />
+        {/* Charts Grid - horizontal scroll for full visibility */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 24 }}>
+          <View style={{ flexDirection: 'row', minWidth: Dimensions.get('window').width - sidebarWidth, paddingRight: 24 }}>
+            {/* Bar Chart */}
+            <View style={[styles.chartBox, { width: 320, marginRight: 18 }]}> 
+              <Text style={styles.chartTitle}>User Bar Chart</Text>
+              <Text style={styles.chartSubtitle}>A bar chart provides a way of showing data values represented as vertical bars.</Text>
+              <BarChart
+                data={{
+                  labels: userStats.map(u => u.label),
+                  datasets: [{ data: userStats.map(u => u.count) }],
+                }}
+                width={300}
+                height={200}
+                yAxisLabel=""
+                yAxisSuffix=""
+                chartConfig={{
+                  backgroundColor: '#fff',
+                  backgroundGradientFrom: '#fff',
+                  backgroundGradientTo: '#fff',
+                  decimalPlaces: 0,
+                  color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
+                  labelColor: (opacity = 1) => `rgba(30, 41, 59, ${opacity})`,
+                  style: { borderRadius: 16 },
+                  propsForDots: { r: '6', strokeWidth: '2', stroke: '#3B82F6' },
+                }}
+                style={{ borderRadius: 16 }}
+                fromZero
+              />
+            </View>
+            {/* Pie Chart */}
+            <View style={[styles.chartBox, { width: 320, marginRight: 18 }]}> 
+              <Text style={styles.chartTitle}>User Pie Chart</Text>
+              <Text style={styles.chartSubtitle}>Pie charts are excellent at showing the relational proportions between data.</Text>
+              <PieChart
+                data={userStats.map(u => ({
+                  name: u.label,
+                  population: u.count,
+                  color: u.color,
+                  legendFontColor: '#334155',
+                  legendFontSize: 14,
+                }))}
+                width={300}
+                height={200}
+                chartConfig={{
+                  color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
+                }}
+                accessor={'population'}
+                backgroundColor={'transparent'}
+                paddingLeft={'15'}
+                absolute
+              />
+            </View>
+            {/* Line Chart */}
+            <View style={[styles.chartBox, { width: 340 }]}> 
+              <Text style={styles.chartTitle}>User Growth (Line)</Text>
+              <Text style={styles.chartSubtitle}>A line chart is a way of plotting data points on a line.</Text>
+              <LineChart
+                data={{
+                  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                  datasets: [
+                    {
+                      data: lineData,
+                      color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
+                    },
+                  ],
+                }}
+                width={320}
+                height={200}
+                yAxisLabel=""
+                yAxisSuffix=""
+                chartConfig={{
+                  backgroundColor: '#fff',
+                  backgroundGradientFrom: '#fff',
+                  backgroundGradientTo: '#fff',
+                  decimalPlaces: 0,
+                  color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
+                  labelColor: (opacity = 1) => `rgba(30, 41, 59, ${opacity})`,
+                  style: { borderRadius: 10 },
+                  propsForDots: { r: '6', strokeWidth: '2', stroke: '#3B82F6' },
+                }}
+                style={{ borderRadius: 10 }}
+                fromZero
+              />
+            </View>
           </View>
-          <View style={styles.chartBox}>
-            <Text style={styles.chartTitle}>User Pie Chart</Text>
-            <PieChart
-              data={userStats.map(u => ({
-                name: u.label,
-                population: u.count,
-                color: u.color,
-                legendFontColor: "#334155",
-                legendFontSize: 14,
-              }))}
-              width={Dimensions.get("window").width / 2 - 60}
-              height={220}
-              chartConfig={{
-                color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
-              }}
-              accessor={"population"}
-              backgroundColor={"transparent"}
-              paddingLeft={"15"}
-              absolute
-            />
-          </View>
-          <View style={styles.chartBox}>
-            <Text style={styles.chartTitle}>User Growth (Line)</Text>
-            <LineChart
-              data={{
-                labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-                datasets: [
-                  {
-                    data: lineData,
-                    color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
-                  },
-                ],
-              }}
-              width={Dimensions.get("window").width - sidebarWidth - 60}
-              height={220}
-              yAxisLabel=""
-              yAxisSuffix=""
-              chartConfig={{
-                backgroundColor: "#fff",
-                backgroundGradientFrom: "#fff",
-                backgroundGradientTo: "#fff",
-                decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(30, 41, 59, ${opacity})`,
-                style: { borderRadius: 16 },
-                propsForDots: { r: "6", strokeWidth: "2", stroke: "#3B82F6" },
-              }}
-              style={{ borderRadius: 16 }}
-              fromZero
-            />
-          </View>
-        </View>
+        </ScrollView>
       </ScrollView>
     </View>
   );
@@ -374,5 +384,11 @@ const styles = StyleSheet.create({
     color: "#1E293B",
     marginBottom: 8,
     textAlign: "center",
+  },
+  chartSubtitle: {
+    fontSize: 13,
+    color: '#64748B',
+    marginBottom: 8,
+    textAlign: 'center',
   },
 });

@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList, Pressable, Modal, TextInput, Alert, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, FlatList, Pressable, Modal, TextInput, Alert, TouchableOpacity, ScrollView } from "react-native";
 import { useState, useEffect } from "react";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 import { firestore } from "../../../constants/FirebaseConfig";
@@ -11,7 +11,7 @@ export default function StudentPage() {
   const [students, setStudents] = useState<any[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [classQuery, setClassQuery] = useState("");
+  const [selectedClass, setSelectedClass] = useState<string | null>(null);
   const [editingStudent, setEditingStudent] = useState(null);
 
   const fetchStudents = async () => {
@@ -40,11 +40,15 @@ export default function StudentPage() {
     }
   };
 
+  // Filter students by search and selected class
   const filteredStudents = students.filter((student) => {
     const matchesName = student.studentName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesClass = student.studentClass.toLowerCase().includes(classQuery.toLowerCase());
+    const matchesClass = selectedClass ? student.studentClass.startsWith(selectedClass) : true;
     return matchesName && matchesClass;
   });
+
+  // List of classes 1-10
+  const classList = Array.from({ length: 10 }, (_, i) => (i + 1).toString());
 
   return (
     <View style={styles.container}>
@@ -56,19 +60,31 @@ export default function StudentPage() {
         <Text style={styles.headerTitle}>Students</Text>
       </View>
 
-      {/* Search Inputs */}
+      {/* Class List */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
+        {classList.map((cls) => (
+          <Pressable
+            key={cls}
+            style={[
+              styles.classButton,
+              selectedClass === cls && styles.classButtonActive
+            ]}
+            onPress={() => setSelectedClass(selectedClass === cls ? null : cls)}
+          >
+            <Text style={[
+              styles.classButtonText,
+              selectedClass === cls && styles.classButtonTextActive
+            ]}>Class {cls}</Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+
+      {/* Search Input */}
       <TextInput
         style={styles.searchInput}
         placeholder="Search student..."
         value={searchQuery}
         onChangeText={setSearchQuery}
-        placeholderTextColor="#999"
-      />
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Search class..."
-        value={classQuery}
-        onChangeText={setClassQuery}
         placeholderTextColor="#999"
       />
 
@@ -77,29 +93,39 @@ export default function StudentPage() {
         data={filteredStudents}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.studentItem}>
+          <Pressable
+            style={styles.studentItem}
+            onPress={() => router.push({ pathname: '/(tabs)/Admin/student', params: { id: item.id } })}
+          >
             <Text style={styles.studentText}>{item.studentName}</Text>
             <Text style={styles.studentSubText}><Text style={styles.bold}>Class:</Text> {item.studentClass}</Text>
-            <Text style={styles.studentSubText}><Text style={styles.bold}>Roll:</Text> {item.roll}</Text>
+            <Text style={styles.studentSubText}><Text style={styles.bold}>id:</Text> {item.roll}</Text>
             <Text style={styles.studentSubText}><Text style={styles.bold}>Parent:</Text> {item.parentName}</Text>
             <Text style={styles.studentSubText}><Text style={styles.bold}>Parent Contact:</Text> {item.parentContact}</Text>
-
             <View style={styles.buttonRow}>
               <Pressable
                 style={styles.updateButton}
-                onPress={() => {
+                onPress={(e) => {
+                  e.stopPropagation();
                   setEditingStudent(item);
                   setModalVisible(true);
                 }}
               >
                 <Text style={styles.buttonText}>Update</Text>
               </Pressable>
-              <Pressable style={styles.deleteButton} onPress={() => handleDelete(item.id)}>
+              <Pressable
+                style={styles.deleteButton}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  handleDelete(item.id);
+                }}
+              >
                 <Text style={styles.buttonText}>Delete</Text>
               </Pressable>
             </View>
-          </View>
+          </Pressable>
         )}
+        ListEmptyComponent={<Text style={{ textAlign: 'center', color: '#888', marginTop: 30 }}>No students found.</Text>}
       />
 
       {/* Floating Add Button */}
@@ -198,5 +224,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     elevation: 10,
+  },
+  classButton: {
+    backgroundColor: '#e5e7eb',
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    borderRadius: 20,
+    marginRight: 10,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+  },
+  classButtonActive: {
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
+  },
+  classButtonText: {
+    color: '#153370',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  classButtonTextActive: {
+    color: '#fff',
   },
 });
