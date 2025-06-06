@@ -3,10 +3,12 @@ import { View, Text, TextInput, ImageBackground, StyleSheet, TouchableOpacity, I
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from 'expo-router';
 import { auth, firestore } from '../../constants/FirebaseConfig';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const LoginScreen = () => {
   const router = useRouter();
   const [userType, setUserType] = useState<string>("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = () => {
     switch (userType) {
@@ -34,7 +36,22 @@ const LoginScreen = () => {
         <Text style={styles.title}>Login</Text>
 
         <TextInput style={styles.input} placeholder="Email" placeholderTextColor="#ddd" />
-        <TextInput style={styles.input} placeholder="Password" placeholderTextColor="#ddd" secureTextEntry />
+        
+        {/* Password Field with Eye Icon */}
+        <View style={{ width: '100%', marginBottom: 15 }}>
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor="#ddd"
+            secureTextEntry={!showPassword}
+          />
+          <TouchableOpacity
+            style={{ position: 'absolute', right: 18, top: 16 }}
+            onPress={() => setShowPassword((prev) => !prev)}
+          >
+            <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={22} color="#fff" />
+          </TouchableOpacity>
+        </View>
 
         <Picker selectedValue={userType} style={styles.input} onValueChange={(itemValue) => setUserType(itemValue)}>
           <Picker.Item label="Log in as" value="" />

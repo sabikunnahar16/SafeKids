@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import QRCode from 'react-native-qrcode-svg';
@@ -7,24 +7,18 @@ import * as Sharing from 'expo-sharing';
 
 export default function QRCodeGenerator() {
   const [studentId, setStudentId] = useState('');
-  const [qrCodeRef, setQrCodeRef] = useState<QRCode | null>(null);
+  const qrCodeRef = useRef<any>(null);
 
   const handleDownloadQRCode = async () => {
-    if (!qrCodeRef) return;
+    if (!qrCodeRef.current || !studentId) return;
 
     try {
-      qrCodeRef.toDataURL((data) => {
-        const uri = data;
+      qrCodeRef.current.toDataURL(async (data: string) => {
         const filePath = `${FileSystem.cacheDirectory}student-qr-code.png`;
-        FileSystem.writeAsStringAsync(filePath, uri, { encoding: FileSystem.EncodingType.Base64 })
-          .then(() => Sharing.shareAsync(filePath))
-          .then(() => Alert.alert('Success', 'QR Code downloaded and ready to share.'))
-          .catch(() => Alert.alert('Error', 'Failed to download QR Code.'));
+        await FileSystem.writeAsStringAsync(filePath, data, { encoding: FileSystem.EncodingType.Base64 });
+        await Sharing.shareAsync(filePath);
+        Alert.alert('Success', 'QR Code downloaded and ready to share.');
       });
-      const filePath = `${FileSystem.cacheDirectory}student-qr-code.png`;
-      await FileSystem.writeAsStringAsync(filePath, uri, { encoding: FileSystem.EncodingType.Base64 });
-      await Sharing.shareAsync(filePath);
-      Alert.alert('Success', 'QR Code downloaded and ready to share.');
     } catch (error) {
       Alert.alert('Error', 'Failed to download QR Code.');
     }
@@ -39,16 +33,16 @@ export default function QRCodeGenerator() {
         value={studentId}
         onChangeText={setStudentId}
       />
-      {studentId ? (
+      {studentId.trim() ? (
         <QRCode
-          value={studentId}
+          value={studentId.trim()}
           size={200}
-          getRef={(ref) => setQrCodeRef(ref)}
+          getRef={(c) => { qrCodeRef.current = c; }}
         />
       ) : (
         <Text style={styles.placeholder}>Enter a Student ID to generate QR Code</Text>
       )}
-      <TouchableOpacity style={styles.button} onPress={handleDownloadQRCode}>
+      <TouchableOpacity style={styles.button} onPress={handleDownloadQRCode} disabled={!studentId.trim()}>
         <Text style={styles.buttonText}>Download QR Code</Text>
       </TouchableOpacity>
     </SafeAreaView>

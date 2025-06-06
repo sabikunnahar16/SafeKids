@@ -1,20 +1,26 @@
 // Class 3 students page
+// Class 1 students page
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList, Pressable, Alert, Image } from "react-native";
+import { View, Text, StyleSheet, FlatList, Pressable, Alert, Image, Modal, TouchableOpacity } from "react-native";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 import { firestore } from "../../../constants/FirebaseConfig";
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
+import * as ImagePicker from 'expo-image-picker';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { updateStudent } from './updateStudent';
 
 type Student = {
   id: string;
   studentName: string;
   studentClass: string;
   imageUri?: string;
+  // add other fields as needed
 };
 
-export default function Class3() {
+export default function Class1() {
   const [students, setStudents] = useState<Student[]>([]);
+  const [menuVisible, setMenuVisible] = useState<string | null>(null);
   const router = useRouter();
 
   const fetchStudents = async () => {
@@ -31,56 +37,215 @@ export default function Class3() {
 
   const handleDelete = async (studentId: string) => {
     try {
+      console.log('Attempting to delete student with Firestore doc id:', studentId);
       await deleteDoc(doc(firestore, "students", studentId));
-      Alert.alert("Deleted", "Student deleted successfully");
-      fetchStudents();
+      await new Promise(resolve => setTimeout(resolve, 500)); // Wait for Firestore consistency
+      await fetchStudents();
+      // Check if student still exists in the list
+      const stillExists = students.some(s => s.id === studentId);
+      if (stillExists) {
+        Alert.alert("Error", "Student could not be deleted. Please check your Firestore rules or refresh the app.");
+      } else {
+        Alert.alert("Deleted", "Student deleted successfully");
+      }
     } catch (error) {
-      Alert.alert("Error", "Failed to delete student");
+      console.error('Delete error:', error);
+      Alert.alert("Error", `Failed to delete student: ${(error as any)?.message || error}`);
+    }
+  };
+
+  const handleProfileImagePress = async (student: Student) => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert('Permission Denied', 'You need to allow access to the media library.');
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+      });
+      if (!result.canceled) {
+        const imageUri = result.assets[0].uri;
+        // Upload to Firebase Storage
+        const response = await fetch(imageUri);
+        const blob = await response.blob();
+        const storage = getStorage();
+        const storageRef = ref(storage, `students/${student.id}.jpg`);
+        await uploadBytes(storageRef, blob);
+        const downloadUrl = await getDownloadURL(storageRef);
+        // Update Firestore using updateStudent helper
+        await updateStudent(student.id, { imageUri: downloadUrl });
+        Alert.alert('Success', 'Profile image updated!');
+        fetchStudents();
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update profile image.');
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Class 3 Students (3-1 & 3-2)</Text>
+      <Text style={styles.pageTitle}>Students of Class 3</Text>
+      <Text style={styles.subtitle}>(3-1 & 3-2)</Text>
       <FlatList
         data={students}
         keyExtractor={item => item.id}
+        contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
-          <View style={styles.studentCard}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={styles.studentCardRow}>
+            <Pressable onPress={() => handleProfileImagePress(item)} style={styles.profileSection}>
               {item.imageUri ? (
                 <Image source={{ uri: item.imageUri }} style={styles.avatar} />
               ) : (
-                <Ionicons name="person-circle" size={48} color="#2563EB" />
+                <View style={styles.avatarPlaceholder} />
               )}
-              <View style={{ marginLeft: 12 }}>
+              <View style={{ marginLeft: 16 }}>
                 <Text style={styles.studentName}>{item.studentName}</Text>
                 <Text style={styles.studentInfo}>ID: {item.id}</Text>
                 <Text style={styles.studentInfo}>Class: {item.studentClass}</Text>
               </View>
-            </View>
-            <View style={styles.buttonRow}>
-              <Pressable style={styles.updateButton} onPress={() => router.push({ pathname: '/(tabs)/Admin/StudentForm', params: { id: item.id } })}>
-                <Ionicons name="create-outline" size={20} color="#fff" />
-                <Text style={styles.buttonText}>Update</Text>
-              </Pressable>
-              <Pressable style={styles.deleteButton} onPress={() => handleDelete(item.id)}>
-                <Ionicons name="trash-outline" size={20} color="#fff" />
-                <Text style={styles.buttonText}>Delete</Text>
-              </Pressable>
-              <Pressable style={styles.idCardButton} onPress={() => router.push({ pathname: '/(tabs)/Admin/student', params: { id: item.id } })}>
-                <Ionicons name="card-outline" size={20} color="#fff" />
-                <Text style={styles.buttonText}>ID Card</Text>
-              </Pressable>
-            </View>
+            </Pressable>
+            <TouchableOpacity onPress={() => setMenuVisible(item.id)} style={styles.menuButton}>
+              <Ionicons name="ellipsis-vertical" size={24} color="#153370" />
+            </TouchableOpacity>
+            <Modal
+              visible={menuVisible === item.id}
+              transparent
+              animationType="fade"
+              onRequestClose={() => setMenuVisible(null)}
+            >
+              <TouchableOpacity style={styles.modalOverlay} onPress={() => setMenuVisible(null)} />
+              <View style={styles.menuModal}>
+                <Pressable style={styles.menuItem} onPress={() => {
+                  setMenuVisible(null);
+                  const student = students.find(s => s.id === item.id);
+                  if (student) {
+                    router.push({
+                      pathname: '/(tabs)/Admin/StudentForm',
+                      params: { id: item.id, existingStudent: JSON.stringify(student) }
+                    });
+                  } else {
+                    Alert.alert('Error', 'Student data not found');
+                  }
+                }}>
+                  <Ionicons name="create-outline" size={20} color="#2563EB" style={{ marginRight: 8 }} />
+                  <Text style={styles.menuText}>Update</Text>
+                </Pressable>
+                <Pressable style={styles.menuItem} onPress={() => { setMenuVisible(null); handleDelete(item.id); }}>
+                  <Ionicons name="trash-outline" size={20} color="#F43F5E" style={{ marginRight: 8 }} />
+                  <Text style={styles.menuText}>Delete</Text>
+                </Pressable>
+                <Pressable style={styles.menuItem} onPress={() => { setMenuVisible(null); router.push({ pathname: '/(tabs)/Admin/StudentIdCard', params: { id: item.id } }); }}>
+                  <Ionicons name="card-outline" size={20} color="#2563EB" style={{ marginRight: 8 }} />
+                  <Text style={styles.menuText}>ID Card</Text>
+                </Pressable>
+              </View>
+            </Modal>
           </View>
         )}
-        ListEmptyComponent={<Text style={{ textAlign: 'center', color: '#888', marginTop: 30 }}>No students found.</Text>}
+        ListEmptyComponent={<Text style={styles.emptyText}>No students found.</Text>}
       />
     </View>
   );
 }
 
+
 const styles = StyleSheet.create({
-  ...require('./class1').styles
+  ...require('./class1').styles,
+  pageTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#153370',
+    textAlign: 'center',
+    marginTop: 35,
+    marginBottom: 2,
+    letterSpacing: 0.5,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#2563EB',
+    textAlign: 'center',
+    marginBottom: 18,
+    fontWeight: '500',
+  },
+  listContent: {
+    paddingBottom: 30,
+  },
+  studentCardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: 20,
+    marginBottom: 18,
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 10,
+    elevation: 3,
+    justifyContent: 'space-between',
+  },
+  profileSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  avatar: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: '#e0e7ff',
+    borderWidth: 2,
+    borderColor: '#2563EB',
+  },
+  avatarPlaceholder: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: '#e0e7ff',
+    borderWidth: 2,
+    borderColor: '#e0e7ff',
+  },
+  menuButton: {
+    padding: 8,
+    borderRadius: 20,
+    marginLeft: 8,
+  },
+  menuModal: {
+    position: 'absolute',
+    right: 30,
+    top: 120,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 7,
+    zIndex: 1000,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+  },
+  menuText: {
+    fontSize: 17,
+    color: '#153370',
+    fontWeight: '500',
+  },
+  modalOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.12)',
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: '#888',
+    marginTop: 40,
+    fontSize: 16,
+  },
 });

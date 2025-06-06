@@ -20,7 +20,7 @@ export default function ClassListPage() {
               styles.classButton,
               pressed && styles.classButtonPressed
             ]}
-            onPress={() => router.push(`/app/(tabs)/Admin/class${cls}` as any)}
+            onPress={() => router.push(`/(tabs)/Admin/class${cls}` as any)}
           >
             <Text style={styles.classButtonText}>Class {cls}</Text>
             <Ionicons name="chevron-forward" size={22} color="#2563EB" style={{ marginLeft: 8 }} />

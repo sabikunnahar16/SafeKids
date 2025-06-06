@@ -7,60 +7,71 @@ import {
   Pressable,
   Alert,
   ScrollView,
+  Image,
   ImageBackground,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
-import { firestore } from "../../../constants/FirebaseConfig";
+import { firestore,storage } from "../../../constants/FirebaseConfig";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import * as ImagePicker from "expo-image-picker";
 import QRCode from "react-native-qrcode-svg";
-import { useLocalSearchParams } from 'expo-router';
-import { updateStudent } from './updateStudent';
 
 export default function StudentForm({
-  onClose = () => {}, // Provide a default no-op function
+  onClose,
   existingStudent = null,
 }: {
-  onClose?: () => void;
+  onClose: () => void;
   existingStudent?: any;
 }) {
-  const params = useLocalSearchParams();
-  const parsedStudent = params.existingStudent ? JSON.parse(params.existingStudent as string) : existingStudent;
-  // Use docId for Firestore doc id, idNumber for custom student id
-  const docId = params.id ? params.id.toString() : parsedStudent?.id || "";
-  // Never allow editing docId in the form!
-  const [studentName, setStudentName] = useState(parsedStudent?.studentName || "");
-  const [idNumber, setIdNumber] = useState(parsedStudent?.idNumber || "");
-  const [studentClass, setStudentClass] = useState(parsedStudent?.studentClass || "");
-  const [parentName, setParentName] = useState(parsedStudent?.parentName || "");
-  const [parentContact, setParentContact] = useState(parsedStudent?.parentContact || "");
-  const [parentAddress, setParentAddress] = useState(parsedStudent?.parentAddress || "");
-  const [qrValue, setQrValue] = useState<string | null>(
-    parsedStudent?.qrValue ||
-    (parsedStudent
-      ? JSON.stringify({
-          studentName: parsedStudent.studentName,
-          idNumber: parsedStudent.idNumber,
-          studentClass: parsedStudent.studentClass,
-          parentName: parsedStudent.parentName,
-          parentContact: parsedStudent.parentContact,
-          parentAddress: parsedStudent.parentAddress,
-        })
-      : null)
-  );
+  const [studentName, setStudentName] = useState(existingStudent?.studentName || "");
+  const [id, setId] = useState(existingStudent?.id || "");
+  const [studentClass, setStudentClass] = useState(existingStudent?.studentClass || "");
+  const [parentName, setParentName] = useState(existingStudent?.parentName || "");
+  const [parentContact, setParentContact] = useState(existingStudent?.parentContact || "");
+  const [parentAddress, setParentAddress] = useState(existingStudent?.parentAddress || "");
+  const [imageUri, setImageUri] = useState<string | null>(existingStudent?.imageUri || null);
+  const [qrValue, setQrValue] = useState<string | null>(null);
+
+  const handleImagePick = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (!permissionResult.granted) {
+        Alert.alert("Permission Denied", "You need to allow access to the media library.");
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        setImageUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Image picker error: ", error);
+      Alert.alert("Error", "Failed to pick an image.");
+    }
+  };
 
   const handleGenerateQRCode = () => {
-    if (!studentName || !idNumber || !studentClass || !parentName || !parentContact || !parentAddress) {
+    if (!studentName || !id || !studentClass || !parentName || !parentContact || !parentAddress) {
       Alert.alert("Missing Information", "Please fill in all the fields before generating the QR code.");
       return;
     }
+
     const studentData = {
       studentName,
-      idNumber,
+      id,
       studentClass,
       parentName,
       parentContact,
       parentAddress,
+      imageUri,
     };
+
     setQrValue(JSON.stringify(studentData));
     Alert.alert("QR Code Generated", "The QR code has been successfully generated.");
   };
@@ -70,25 +81,51 @@ export default function StudentForm({
       Alert.alert("QR Code Missing", "Please generate the QR code before submitting the form.");
       return;
     }
+
     try {
-      const studentData: any = {
+      let uploadedImageUrl = imageUri;
+      if (imageUri && !imageUri.startsWith("http")) {
+        // Upload image to Firebase Storage
+        const response = await fetch(imageUri);
+        const blob = await response.blob();
+        const storage = getStorage();
+        const uniqueId = id || Date.now().toString();
+        const storageRef = ref(storage, `students/${uniqueId}.jpg`);
+        await uploadBytes(storageRef, blob);
+        uploadedImageUrl = await getDownloadURL(storageRef);
+      }
+
+      // If adding a new student, generate a unique id for the student
+      let studentDocId = id;
+      if (!existingStudent?.id && !id) {
+        studentDocId = Date.now().toString();
+        setId(studentDocId);
+      }
+
+      const studentData = {
         studentName,
-        idNumber,
+        id: studentDocId,
         studentClass,
         parentName,
         parentContact,
         parentAddress,
+        imageUri: uploadedImageUrl,
         qrValue,
+        createdAt: new Date(),
       };
-      if (docId) {
-        studentData.updatedAt = new Date();
-        await updateStudent(docId, studentData);
+
+      if (existingStudent?.id) {
+        const studentRef = doc(firestore, "students", existingStudent.id);
+        await updateDoc(studentRef, {
+          ...studentData,
+          updatedAt: new Date(),
+        });
         Alert.alert("Updated", "Student updated successfully!");
       } else {
-        studentData.createdAt = new Date();
         await addDoc(collection(firestore, "students"), studentData);
         Alert.alert("Added", "Student added successfully!");
       }
+
       onClose();
     } catch (error: any) {
       console.error("Error saving student:", error);
@@ -108,12 +145,11 @@ export default function StudentForm({
             style={styles.input}
           />
           <TextInput
-            placeholder="Student ID (Custom)"
-            value={idNumber}
-            onChangeText={setIdNumber}
+            placeholder="ID"
+            value={id}
+            onChangeText={setId}
             style={styles.input}
             keyboardType="default"
-            editable={true}
           />
           <View style={styles.pickerContainer}>
             <Picker
@@ -163,10 +199,16 @@ export default function StudentForm({
             style={[styles.input, { height: 80 }]}
             multiline
           />
+          <Pressable style={styles.smallButton} onPress={handleImagePick}>
+            <Text style={styles.buttonText}>Pick Image</Text>
+          </Pressable>
+          {imageUri && (
+            <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+          )}
           <Pressable style={styles.smallButton} onPress={handleGenerateQRCode}>
             <Text style={styles.buttonText}>QR Code</Text>
           </Pressable>
-          {qrValue && typeof qrValue === 'string' && qrValue.trim() !== '' && (
+          {qrValue && (
             <View style={styles.qrContainer}>
               <Text style={styles.qrTitle}>Generated QR Code:</Text>
               <QRCode value={qrValue} size={200} />
@@ -262,6 +304,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     paddingVertical: 14,
+  },
+  imagePreview: {
+    width: 200,
+    height: 200,
+    borderRadius: 10,
+    marginTop: 10,
+    alignSelf: "center",
   },
   qrContainer: {
     marginTop: 20,
