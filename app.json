@@ -26,31 +26,20 @@
     "plugins": [
       "expo-router",
       [
-        "expo-splash-screen",
+        "expo-camera",
         {
-          "image": "./assets/images/splash-icon.png",
-          "resizeMode": "cover",
-          "backgroundColor": "#ffffff",
-          "enableFullScreenImage_legacy": true
+          "cameraPermission": "Allow SafeKids to access your camera",
+          "microphonePermission": "Allow SafeKids to access your microphone",
+          "recordAudioPermission": true
         }
       ],
-      [
-        "expo-font",
-        {
-          "fonts": [
-            "./assets/fonts/Rubik-Bold.ttf",
-            "./assets/fonts/Rubik-ExtraBold.ttf",
-            "./assets/fonts/Rubik-Medium.ttf",
-            "./assets/fonts/Rubik-Light.ttf",
-            "./assets/fonts/Rubik-Regular.ttf",
-            "./assets/fonts/Rubik-SemiBold.ttf"
-          ]
-        }
-      ]
+      "expo-font",
+      "expo-barcode-scanner"
     ],
-    "experiments": {
-      "typedRoutes": true
-    },
+    "assetBundlePatterns": [
+      "assets/fonts/*",
+      "assets/images/*"
+    ],
     "extra": {
       "eas": {
         "projectId": "7259b4e2-9244-45b4-b2c0-6996a72262b3"

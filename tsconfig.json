@@ -11,8 +11,8 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts",
-    "nativewind-env.d.ts"
-, "screens/Singup.js", "screens/Login.js"  ]
+    "nativewind-env.d.ts",
+    "screens/Singup.js",
+    "screens/Login.js"
+  ]
 }

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 
@@ -7,29 +7,46 @@ export default function BusDriverDashboard() {
   const router = useRouter();
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Bus Driver Dashboard</Text>
-      <View style={styles.cardRow}>
-        <TouchableOpacity style={styles.card} onPress={() => router.push('/(tabs)/bus/ScanRecord')}> 
-          <Ionicons name="qr-code-outline" size={48} color="#2563EB" />
-          <Text style={styles.cardTitle}>Scan Record</Text>
-          <Text style={styles.cardDesc}>View and scan student bus QR codes</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.card} onPress={() => router.push('/(tabs)/bus/BusSchedule')}> 
-          <Ionicons name="bus-outline" size={48} color="#2563EB" />
-          <Text style={styles.cardTitle}>Bus Schedule</Text>
-          <Text style={styles.cardDesc}>See your assigned bus schedule</Text>
+    <ImageBackground source={require("@/assets/images/hikaique-68427.jpg")} style={styles.bgImage} resizeMode="cover">
+      <View style={styles.overlay}>
+        <Text style={styles.title}>Bus Driver Dashboard</Text>
+        <View style={styles.cardRow}>
+          <TouchableOpacity style={styles.card} onPress={() => router.push('/(tabs)/bus/QRScanner' as any)}>
+            <Ionicons name="qr-code-outline" size={48} color="#2563EB" />
+            <Text style={styles.cardTitle}>Scan Record</Text>
+            <Text style={styles.cardDesc}>Scan student bus ID card QR codes</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.card} onPress={() => router.push('/(tabs)/bus/BusSchedule' as any)}>
+            <Ionicons name="bus-outline" size={48} color="#2563EB" />
+            <Text style={styles.cardTitle}>Bus Schedule</Text>
+            <Text style={styles.cardDesc}>See your assigned bus schedule</Text>
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity style={styles.logoutBtn} onPress={() => router.push('/logout')}>
+          <Ionicons name="log-out-outline" size={24} color="#fff" style={{ marginRight: 8 }} />
+          <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.logoutBtn} onPress={() => router.push('/logout')}>
-        <Ionicons name="log-out-outline" size={24} color="#fff" style={{ marginRight: 8 }} />
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  bgImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  overlay: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.70)', // More transparent overlay
+    padding: 24,
+  },
   container: {
     flex: 1,
     backgroundColor: '#f4f6fa',
@@ -51,7 +68,7 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255,255,255,0.85)', // More transparent card
     borderRadius: 18,
     padding: 28,
     marginHorizontal: 12,

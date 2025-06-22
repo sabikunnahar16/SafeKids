@@ -7,17 +7,25 @@ import * as SMS from 'expo-sms';
 export default function ScanRecord() {
   const [scannedData, setScannedData] = useState('');
 
-  const handleQRCodeScanned = async (e) => {
-    const studentId = e.data; // Assuming the QR code contains the student ID
+  interface QRCodeEvent {
+    data: string;
+  }
+
+  interface SMSResult {
+    result: string;
+  }
+
+  const handleQRCodeScanned = async (e: QRCodeEvent): Promise<void> => {
+    const studentId: string = e.data; // Assuming the QR code contains the student ID
     setScannedData(studentId);
 
     // Get the current time
-    const currentTime = new Date().toLocaleTimeString();
+    const currentTime: string = new Date().toLocaleTimeString();
 
     // Simulate sending a message to the parent's contact number
-    const isAvailable = await SMS.isAvailableAsync();
+    const isAvailable: boolean = await SMS.isAvailableAsync();
     if (isAvailable) {
-      const { result } = await SMS.sendSMSAsync(
+      const { result }: SMSResult = await SMS.sendSMSAsync(
         ['+1234567890'], // Replace with parent's contact number from signup
         `Dear parents, Your child has reached school at ${currentTime}.`
       );
@@ -30,7 +38,12 @@ export default function ScanRecord() {
     storeAttendanceRecord(studentId, currentTime);
   };
 
-  const storeAttendanceRecord = (studentId, time) => {
+  interface AttendanceRecord {
+    studentId: string;
+    time: string;
+  }
+
+  const storeAttendanceRecord = (studentId: string, time: string): void => {
     // Replace this with actual backend API or local storage logic
     console.log(`Attendance recorded: Student ID: ${studentId}, Time: ${time}`);
     Alert.alert('Attendance Recorded', `Student ID: ${studentId}, Time: ${time}`);

@@ -21,7 +21,7 @@ export default function SchoolAuth() {
         style={styles.button} 
         onPress={() => {
           try {
-            router.push('./ScanRecord' as any); // Ensure this path exists
+            router.push('./Recordscan' as any); // Ensure this path exists
           } catch (error) {
             console.error('Navigation error:', error);
             Alert.alert('Error', 'Failed to navigate to ScanRecord.');
