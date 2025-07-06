@@ -12,10 +12,10 @@ import {
 } from "react-native";
 import { Overlay } from "./Overlay";
 import { useEffect, useRef } from "react";
-import { addDoc, collection, query, where, getDocs, Timestamp } from "firebase/firestore";
+import { addDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { firestore } from "../../../../constants/FirebaseConfig";
 
-export default function ScannerScreen() {
+export default function SchoolScannerScreen() {
   const qrLock = useRef(false);
   const appState = useRef(AppState.currentState);
   const lastScannedStudentId = useRef<string | null>(null);
@@ -40,24 +40,15 @@ export default function ScannerScreen() {
   const handleBarcodeScanned = async ({ data }: { data: string }) => {
     if (data && !qrLock.current) {
       qrLock.current = true;
-      console.log('🔍 QR Code scanned, raw data:', data);
 
       try {
         // Try to parse the QR code as student data
         const studentData = JSON.parse(data);
-        console.log('✅ Parsed QR data successfully:', studentData);
 
         if (studentData.studentName && studentData.idNumber) {
-          console.log(`👤 Valid student QR detected: ${studentData.studentName} (ID: ${studentData.idNumber})`);
           // This is a student QR code - find the student in database and notify parent
           await findStudentAndNotifyParent(studentData);
-          
-          // Reset the QR lock after successful processing - moved to finally block
         } else {
-          console.log('❌ QR data missing required fields:', { 
-            hasStudentName: !!studentData.studentName, 
-            hasIdNumber: !!studentData.idNumber 
-          });
           // Not a student QR code
           Alert.alert(
             "Invalid QR Code",
@@ -73,7 +64,6 @@ export default function ScannerScreen() {
           );
         }
       } catch (error) {
-        console.log('❌ Failed to parse QR as JSON:', error);
         // QR code is not JSON, check if it's a URL
         if (data.startsWith("http")) {
           Linking.openURL(data).catch((err) =>
@@ -101,7 +91,6 @@ export default function ScannerScreen() {
 
   const findStudentAndNotifyParent = async (qrStudentData: any) => {
     try {
-      console.log('🔍 Looking up student in database:', qrStudentData);
       const currentTime = Date.now();
       const timeSinceLastScan = currentTime - lastScanTime.current;
       
@@ -133,20 +122,16 @@ export default function ScannerScreen() {
         where("idNumber", "==", qrStudentData.idNumber)
       );
 
-      console.log('📊 Querying students collection for ID:', qrStudentData.idNumber);
       const studentSnapshot = await getDocs(studentsQuery);
-      console.log(`📋 Found ${studentSnapshot.size} students with ID ${qrStudentData.idNumber}`);
 
       if (!studentSnapshot.empty) {
         const studentRecord = studentSnapshot.docs[0].data();
-        console.log('✅ Student record found:', studentRecord);
         await sendNotificationToParent(studentRecord, qrStudentData);
       } else {
-        console.log('❌ No student record found in database for ID:', qrStudentData.idNumber);
         Alert.alert("Error", "Student record not found in database");
       }
     } catch (error) {
-      console.error("❌ Error finding student:", error);
+      console.error("Error finding student:", error);
       Alert.alert("Error", "Failed to find student record");
     }
   };
@@ -154,47 +139,6 @@ export default function ScannerScreen() {
   const sendNotificationToParent = async (studentRecord: any, qrData: any) => {
     try {
       const timestamp = new Date();
-      console.log(`🚌 Bus scanner processing for student: ${studentRecord.studentName} (ID: ${studentRecord.idNumber})`);
-
-      // Determine if this is an IN or OUT scan based on recent records
-      let scanType: 'IN' | 'OUT' = 'IN'; // Default to IN
-      
-      // Check the most recent record for this student
-      const recentRecordsQuery = query(
-        collection(firestore, 'inOutRecords'),
-        where('studentId', '==', studentRecord.idNumber)
-      );
-      
-      const recentRecordsSnapshot = await getDocs(recentRecordsQuery);
-      console.log(`📊 Found ${recentRecordsSnapshot.size} existing records for student ${studentRecord.idNumber}`);
-      
-      const recentRecords = recentRecordsSnapshot.docs
-        .map(doc => ({ ...doc.data(), timestamp: doc.data().timestamp.toDate() }))
-        .sort((a: any, b: any) => b.timestamp.getTime() - a.timestamp.getTime());
-
-      // If the most recent record is IN, this should be OUT, and vice versa
-      if (recentRecords.length > 0) {
-        const lastRecord = recentRecords[0] as any;
-        scanType = lastRecord.type === 'IN' ? 'OUT' : 'IN';
-        console.log(`🔄 Last record was ${lastRecord.type}, so this will be ${scanType}`);
-      } else {
-        console.log(`🆕 No previous records, defaulting to ${scanType}`);
-      }
-
-      // Create IN/OUT record (same as school authority scanner)
-      const inOutRecord = {
-        studentId: studentRecord.idNumber,
-        studentName: studentRecord.studentName,
-        type: scanType,
-        timestamp: Timestamp.fromDate(timestamp),
-        location: 'School Bus',
-        scannerType: 'bus',
-        recordedBy: 'Bus Driver'
-      };
-      
-      console.log(`💾 Creating IN/OUT record:`, inOutRecord);
-      const inOutDocRef = await addDoc(collection(firestore, 'inOutRecords'), inOutRecord);
-      console.log(`✅ IN/OUT record created with ID: ${inOutDocRef.id} - ${scanType} for student ${studentRecord.studentName}`);
 
       const notificationData = {
         studentName: studentRecord.studentName,
@@ -205,24 +149,23 @@ export default function ScannerScreen() {
         parentContact: studentRecord.parentContact,
         parentAddress: studentRecord.parentAddress,
         scanTime: timestamp,
-        message: `Your child ${studentRecord.studentName} (ID: ${studentRecord.idNumber}, Class: ${studentRecord.studentClass}) has been marked ${scanType} on the school bus at ${timestamp.toLocaleString()}`,
-        type: "scan_notification",
+        message: `Your child ${studentRecord.studentName} (ID: ${studentRecord.idNumber}, Class: ${studentRecord.studentClass}) has been scanned by school authority at ${timestamp.toLocaleString()}`,
+        type: "school_scan_notification",
         status: "sent",
-        scannedBy: "Bus Driver",
-        location: "School Bus",
-        inOutType: scanType
+        scannedBy: "School Authority",
+        location: "School Premises"
       };
 
       // Save notification to Firestore
       const docRef = await addDoc(collection(firestore, "notifications"), notificationData);
-      console.log('✅ Notification saved with ID:', docRef.id);
+      console.log('✅ School scan notification saved with ID:', docRef.id);
       console.log('📧 Parent email for notifications:', notificationData.parentEmail);
       console.log('📄 Full notification data:', notificationData);
 
-      // Show success message (no email sent)
+      // Show success message
       Alert.alert(
-        '✅ Notification Sent Successfully!', 
-        `📱 In-app notification: Saved to parent dashboard\n📊 IN/OUT Record: ${scanType} recorded\n\n👤 Student: ${notificationData.studentName}\n🆔 ID: ${notificationData.studentId}\n📚 Class: ${notificationData.studentClass}\n⏰ Time: ${timestamp.toLocaleString()}\n🚌 Action: Marked ${scanType}\n\nParent can view this notification and IN/OUT record in their app dashboard.`,
+        '✅ Student Scanned Successfully!', 
+        `📱 Notification sent to parent dashboard\n\n👤 Student: ${notificationData.studentName}\n🆔 ID: ${notificationData.studentId}\n📚 Class: ${notificationData.studentClass}\n⏰ Time: ${timestamp.toLocaleString()}\n🏫 Location: School Premises\n\nParent will be notified of this school scan.`,
         [
           {
             text: "OK",
@@ -234,19 +177,19 @@ export default function ScannerScreen() {
       );
 
       console.log(
-        "Notification sent to parent:",
+        "School scan notification sent to parent:",
         notificationData.parentEmail
       );
 
     } catch (error) {
-      console.error("Error sending notification:", error);
+      console.error("Error sending school scan notification:", error);
       Alert.alert("Error", "Failed to send notification to parent");
     }
   };
 
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{ title: "Scanner", headerShown: false }} />
+      <Stack.Screen options={{ title: "School Scanner", headerShown: false }} />
       {Platform.OS === "android" ? <StatusBar hidden /> : null}
 
       <CameraView

@@ -15,14 +15,21 @@ const ParentDashboard = () => {
       <SafeAreaView style={styles.container}>
         <Text style={styles.header}>Parent Dashboard</Text>
 
-        <TouchableOpacity style={styles.card} onPress={() => router.push("./viewChildInfo")}>
+        <TouchableOpacity style={styles.card} onPress={() => router.push('./childInfo')}>
           <Ionicons name="person" size={30} color="black" />
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>View Child's Information</Text>
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.card} onPress={() => router.push("/viewInOut" as any)}>
+        <TouchableOpacity style={styles.card} onPress={() => router.push('./notifications')}>
+          <Ionicons name="notifications" size={30} color="black" />
+          <View style={styles.cardContent}>
+            <Text style={styles.cardTitle}>View Notifications</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.card} onPress={() => router.push("./viewInOut")}>
           <Ionicons name="time" size={30} color="black" />
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>View IN/OUT Times</Text>
@@ -36,7 +43,7 @@ const ParentDashboard = () => {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.card} onPress={() => router.push("/TrackLeaves" as any)}>
+        <TouchableOpacity style={styles.card} onPress={() => router.push("./TrackLeaves")}>
           <Ionicons name="analytics" size={30} color="black" />
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Track Leave Applications</Text>

@@ -1,41 +1,88 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, ImageBackground, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { View, Text, TextInput, ImageBackground, StyleSheet, TouchableOpacity, Image, Alert } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from 'expo-router';
 import { auth, firestore } from '../../constants/FirebaseConfig';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const LoginScreen = () => {
   const router = useRouter();
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [userType, setUserType] = useState<string>("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    switch (userType) {
-      case "parent":
-        router.push("../parent_dash/parent" as any);
-        break;
-      case "SchoolAuth":
-        router.push("../school_auth/SchoolAuth" as any);
-        break;
-      case "admin":
-        router.push("../Admin/admin" as any );
-        break;
-      case "BusDriver":
-        router.push("../bus/BusDriver" as any);
-        break;
-      default:
-        break;
+  const handleLogin = async () => {
+    if (!email || !password || !userType) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Authenticate with Firebase Auth
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Get user data from Firestore
+      const userDoc = await getDoc(doc(firestore, 'users', user.uid));
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        
+        // Check if the selected userType matches the stored userType
+        if (userData.userType !== userType) {
+          Alert.alert('Error', 'Selected user type does not match your account type');
+          setLoading(false);
+          return;
+        }
+
+        // Navigate based on userType
+        switch (userType) {
+          case "parent":
+            router.push("../parent_dash/parent" as any);
+            break;
+          case "School Authority":
+            router.push("../school_auth/SchoolAuth" as any);
+            break;
+          case "admin":
+            router.push("../Admin/admin" as any);
+            break;
+          case "Bus Driver":
+            router.push("../bus/BusDriver" as any);
+            break;
+          default:
+            Alert.alert('Error', 'Invalid user type');
+            break;
+        }
+      } else {
+        Alert.alert('Error', 'User data not found');
+      }
+    } catch (error: any) {
+      Alert.alert('Login Error', error.message || 'An error occurred during login');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <ImageBackground source={require("@/assets/images/pexels-cottonbro-6590933.jpg")} style={styles.background}>
+    <ImageBackground source={require("@/assets/images/boy-goes-to-school-free-photo.jpg")} style={styles.background}>
       <View style={styles.overlay} />
       <View style={styles.container}>
         <Text style={styles.title}>Login</Text>
 
-        <TextInput style={styles.input} placeholder="Email" placeholderTextColor="#ddd" />
+        <TextInput 
+          style={styles.input} 
+          placeholder="Email" 
+          placeholderTextColor="#ddd" 
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
         
         {/* Password Field with Eye Icon */}
         <View style={{ width: '100%', marginBottom: 15 }}>
@@ -44,6 +91,8 @@ const LoginScreen = () => {
             placeholder="Password"
             placeholderTextColor="#ddd"
             secureTextEntry={!showPassword}
+            value={password}
+            onChangeText={setPassword}
           />
           <TouchableOpacity
             style={{ position: 'absolute', right: 18, top: 16 }}
@@ -56,13 +105,17 @@ const LoginScreen = () => {
         <Picker selectedValue={userType} style={styles.input} onValueChange={(itemValue) => setUserType(itemValue)}>
           <Picker.Item label="Log in as" value="" />
           <Picker.Item label="parent" value="parent" />
-          <Picker.Item label="School Authority" value="SchoolAuth" />
-          <Picker.Item label="Admin" value="admin" />
-          <Picker.Item label="Bus Driver" value="BusDriver" />
+          <Picker.Item label="School Authority" value="School Authority" />
+          <Picker.Item label="admin" value="admin" />
+          <Picker.Item label="Bus Driver" value="Bus Driver" />
         </Picker>
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={!userType}>
-          <Text style={styles.buttonText}>Login</Text>
+        <TouchableOpacity 
+          style={[styles.button, { opacity: loading ? 0.6 : 1 }]} 
+          onPress={handleLogin} 
+          disabled={!userType || !email || !password || loading}
+        >
+          <Text style={styles.buttonText}>{loading ? 'Logging in...' : 'Login'}</Text>
         </TouchableOpacity>
 
         <Text style={styles.linkContainer}>
@@ -76,18 +129,6 @@ const LoginScreen = () => {
           <Text style={styles.forgotPassword}>Forgot Password?</Text>
         </TouchableOpacity>
 
-        <Text style={styles.orLoginWith}>Or Login With</Text>
-        <View style={styles.socialLoginContainer}>
-          <TouchableOpacity onPress={() => {/* Handle Google login */}}>
-            <Image source={require("@/assets/icons/google.png")} style={styles.socialIcon} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => {/* Handle Facebook login */}}>
-            <Image source={require("@/assets/icons/facebook.webp")} style={styles.socialIcon} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => {/* Handle Instagram login */}}>
-            <Image source={require("@/assets/icons/instagram.png")} style={styles.socialIcon} />
-          </TouchableOpacity>
-        </View>
       </View>
     </ImageBackground>
   );
@@ -112,9 +153,6 @@ const styles = StyleSheet.create({
   linkContainer: { color: "#fff", marginTop: 15, fontSize: 16, flexDirection: "row" },
   link: { color: "#FF6600", marginLeft: 5, fontSize: 16 },
   forgotPassword: { color: "#FF6600", marginTop: 15, fontSize: 16 },
-  orLoginWith: { color: "#fff", marginTop: 20, fontSize: 16 },
-  socialLoginContainer: { flexDirection: "row", justifyContent: "space-around", marginTop: 20, width: "100%" },
-  socialIcon: { width: 40, height: 40 },
 });
 
 export default LoginScreen;

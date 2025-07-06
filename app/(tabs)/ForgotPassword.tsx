@@ -1,124 +1,66 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  Image,
-} from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { sendPasswordResetEmail, getAuth } from 'firebase/auth';
 import { useRouter } from 'expo-router';
 
 const ForgotPasswordScreen: React.FC = () => {
-  const router = useRouter();
-  const [email, setEmail] = useState<string>('');
+  const [email, setEmail] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const router = useRouter();
 
-  const handlePasswordReset = () => {
+  const handlePasswordReset = async () => {
     if (!email.trim()) {
       setErrorMessage('Please enter your email.');
       return;
     }
 
-    if (email !== 'uixlibraries@gmail.com') {
-      setErrorMessage('We cannot find your email.');
-    } else {
+    try {
+      const auth = getAuth();
+      await sendPasswordResetEmail(auth, email);
       setErrorMessage(null);
-      Alert.alert('Success', 'Password reset link sent to your email.');
+      Alert.alert(
+        'Success',
+        'Password reset link sent to your email. Please check your inbox and follow the instructions to reset your password.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              router.replace('/login'); // Navigate to login screen
+            },
+          },
+        ]
+      );
+    } catch (error: any) {
+      setErrorMessage(error.message || 'Failed to send reset email.');
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* Logo Section */}
-      <Image
-        source={{ uri: 'https://thrivesportsco.co.uk/wp-content/uploads/2023/08/Thrive-Sports-Co.-Pitch_Page_16_Image_0001.jpg' }} // Replace this with your logo URL
-        style={styles.logo}
-      />
-      <Text style={styles.title}>Forgot Password</Text>
-      <Text style={styles.subtitle}>
-        Enter your email and we'll send you a link to reset your password.
+      <Text style={styles.header}>Forgot Password</Text>
+      <Text style={styles.info}>
+        Enter your registered email address. We will send you a link to reset your password.
       </Text>
-
       <TextInput
         style={styles.input}
-        placeholder="Enter your email"
+        placeholder="Email"
+        autoCapitalize="none"
         keyboardType="email-address"
         value={email}
-        onChangeText={(text) => setEmail(text)}
+        onChangeText={setEmail}
       />
-
-      {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
-
-      <TouchableOpacity style={styles.submitButton} onPress={handlePasswordReset}>
-        <Text style={styles.submitButtonText}>Submit</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.backButton} onPress={() => router.push("/login" as any)}>
-        <Text style={styles.backText}>⬅ Back to Login</Text>
-      </TouchableOpacity>
+      {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
+      <Button title="Send Reset Link" onPress={handlePasswordReset} />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 24,
-    backgroundColor: '#f9f9f9',
-  },
-  logo: {
-    width: 80,
-    height: 80,
-    alignSelf: 'center',
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#1A73E8',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    textAlign: 'center',
-    color: '#555',
-    marginBottom: 20,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-    backgroundColor: '#fff',
-  },
-  errorText: {
-    color: 'red',
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  submitButton: {
-    backgroundColor: '#28a745',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  submitButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  backButton: {
-    alignItems: 'center',
-  },
-  backText: {
-    color: '#1A73E8',
-    marginTop: 8,
-  },
+  container: { flex: 1, justifyContent: 'center', padding: 24, backgroundColor: '#fff' },
+  header: { fontSize: 24, fontWeight: 'bold', marginBottom: 16, color: '#2563EB', textAlign: 'center' },
+  info: { fontSize: 15, marginBottom: 16, color: '#555', textAlign: 'center' },
+  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, marginBottom: 12 },
+  error: { color: 'red', marginBottom: 12, textAlign: 'center' },
 });
 
 export default ForgotPasswordScreen;

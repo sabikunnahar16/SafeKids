@@ -8,6 +8,7 @@ import {
   Alert,
   ScrollView,
   ImageBackground,
+  Image,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { addDoc, collection } from "firebase/firestore";
@@ -15,7 +16,9 @@ import { firestore } from "../../../constants/FirebaseConfig";
 import QRCode from "react-native-qrcode-svg";
 import { useLocalSearchParams } from 'expo-router';
 import { updateStudent } from './updateStudent';
-
+import * as ImagePicker from 'expo-image-picker';
+// Update the import path below if your supabaseClient file is located elsewhere
+import { supabase } from '../../../constants/supabaseClient';
 
 export default function StudentForm({
   onClose = () => {},
@@ -34,6 +37,7 @@ export default function StudentForm({
   const [parentName, setParentName] = useState(parsedStudent?.parentName || "");
   const [parentContact, setParentContact] = useState(parsedStudent?.parentContact || "");
   const [parentAddress, setParentAddress] = useState(parsedStudent?.parentAddress || "");
+  const [imageUri, setImageUri] = useState(parsedStudent?.imageUrl || null);
   const [qrValue, setQrValue] = useState<string | null>(parsedStudent?.qrValue || null);
 
   const handleGenerateQRCode = () => {
@@ -51,12 +55,63 @@ export default function StudentForm({
     Alert.alert("QR Code Generated", "The QR code has been successfully generated.");
   };
 
+  const handleImagePick = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Permission Required", "Please allow access to photo library.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'] });
+    if (!result.canceled && result.assets.length > 0) {
+      const selectedAsset = result.assets[0];
+      setImageUri(selectedAsset.uri);
+    }
+  };
+
+  // Upload image to Supabase bucket named 'student-images' with any extension
+  const uploadImageToSupabase = async (uri: string, fileName: string) => {
+    // Try to get the file extension from the uri
+    let extension = fileName.split('.').pop();
+    if (!extension || extension.length > 5) {
+      // fallback: try to extract from uri
+      const match = uri.match(/\.([a-zA-Z0-9]+)(\?|$)/);
+      extension = match ? match[1] : 'jpg';
+    }
+    // Ensure fileName has the correct extension
+    let finalFileName = fileName;
+    if (!finalFileName.endsWith('.' + extension)) {
+      finalFileName = `${fileName}.${extension}`;
+    }
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    // Try to get the correct content type
+    let contentType = blob.type || `image/${extension}`;
+    const { error } = await supabase.storage.from('student-images').upload(finalFileName, blob, {
+      contentType,
+      upsert: true,
+    });
+    if (error) throw error;
+    const { data } = supabase.storage.from('student-images').getPublicUrl(finalFileName);
+    return data.publicUrl;
+  };
+
   const handleSubmit = async () => {
     if (!qrValue) {
       Alert.alert("QR Code Missing", "Please generate the QR code before submitting the form.");
       return;
     }
     try {
+      let imageUrl = imageUri;
+      if (imageUri && !imageUri.startsWith('https')) {
+        // Try to extract extension from uri
+        let ext = imageUri.split('.').pop();
+        if (!ext || ext.length > 5) {
+          const match = imageUri.match(/\.([a-zA-Z0-9]+)(\?|$)/);
+          ext = match ? match[1] : 'jpg';
+        }
+        const fileName = `student-${idNumber}.${ext}`;
+        imageUrl = await uploadImageToSupabase(imageUri, fileName);
+      }
       const studentData: any = {
         studentName,
         idNumber,
@@ -65,6 +120,7 @@ export default function StudentForm({
         parentName,
         parentContact,
         parentAddress,
+        imageUrl,
         qrValue,
         updatedAt: new Date(),
       };
@@ -158,6 +214,10 @@ export default function StudentForm({
             style={[styles.input, { height: 80 }]}
             multiline
           />
+          <Pressable style={styles.smallButton} onPress={handleImagePick}>
+            <Text style={styles.buttonText}>Pick Student Image</Text>
+          </Pressable>
+          {imageUri && <Image source={{ uri: imageUri }} style={{ width: 100, height: 100, borderRadius: 8, marginTop: 10 }} />}
           <Pressable style={styles.smallButton} onPress={handleGenerateQRCode}>
             <Text style={styles.buttonText}>Generate QR Code</Text>
           </Pressable>

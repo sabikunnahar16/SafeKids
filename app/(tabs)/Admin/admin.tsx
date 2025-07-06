@@ -21,6 +21,7 @@ const menuItems: MenuItem[] = [
   { name: "Bus Entries", route: "/(tabs)/Admin/busentries", icon: require("@/assets/icons/bus.jpg") },
   { name: "School Entries", route: "/(tabs)/Admin/SchoolEntries", icon: require("@/assets/icons/school.png") },
   { name: "Leaves", route: "/(tabs)/Admin/LeaveAdmin", icon: require("@/assets/icons/home.png") },
+  { name: "All Notifications", route: "/(tabs)/Admin/AllNotifications", icon: require("@/assets/icons/bell.png") },
   { name: "Logout", route: "/logout", icon: require("@/assets/icons/logout.png") },
 ];
 

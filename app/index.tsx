@@ -28,7 +28,7 @@ export default function Index() {
            {/* Event Cards Section (Horizontal Scroll) */}
            <View style={styles.eventContainer}>
              <Text style={styles.eventTitle}> Your Child, Our Priority</Text>
-             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.eventScroll}>
+             <Swiper style={styles.eventScroll} showsPagination={false} autoplay>
                <View style={styles.eventCard}>
                  <Image source={require("@/assets/images/200312720-001-56a939b03df78cf772a4ee72.jpg")} style={styles.eventImage} />
                  <Text style={styles.eventText}>Building Trust: Seamless communication between school and parents, fostering a secure environment.</Text>
@@ -41,7 +41,7 @@ export default function Index() {
                  <Image source={require("@/assets/images/children-learning-second-language.jpg")} style={styles.eventImage} />
                  <Text style={styles.eventText}>A Secure Campus: Enhanced monitoring and tracking systems protecting students.</Text>
                </View>
-             </ScrollView>
+             </Swiper>
            </View>
      
            {/* Donation & Request Buttons */}
@@ -117,17 +117,17 @@ const styles = StyleSheet.create({
     color: "#34495e", 
     marginBottom: 15 
   },
-  eventScroll: { marginBottom: 15 },
+  eventScroll: { height: 250 },
   eventCard: { 
+    flex: 1,
     backgroundColor: "#ffffff", 
     padding: 20, 
     borderRadius: 10, 
-    marginRight: 15, // spacing between cards
+    marginHorizontal: 15,
     shadowColor: "#000", 
     shadowOpacity: 0.1, 
     shadowRadius: 8, 
     elevation: 5, 
-    width: 250 // fixed width for the event cards
   },
   eventImage: { 
     width: "100%", 

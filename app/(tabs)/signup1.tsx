@@ -37,21 +37,21 @@ export default function SignUpScreen() {
         userType,
       });
 
-      // Navigate based on userType
-      switch (userType) {
-        case 'parent':
-          router.push('/parent');
-          break;
-        case 'School Authority':
-          router.push('/SchoolAuth');
-          break;
-        case 'admin':
-          router.push('/admin' as any);
-          break;
-        
-        default:
-          break;
-      }
+      // Show success message and redirect to login
+      Alert.alert(
+        'Success!', 
+        'Account created successfully. Please login to continue.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              // Navigate to login page
+              router.push('/login' as any);
+            }
+          }
+        ]
+      );
+
     } catch (error) {
       Alert.alert('Error', (error as Error).message);
     }
@@ -59,7 +59,7 @@ export default function SignUpScreen() {
 
   return (
     <ImageBackground
-      source={require('@/assets/images/pexels-cottonbro-6590933.jpg')}
+      source={require('@/assets/images/junior.jpg')}
       style={styles.background}
     >
       <View style={styles.overlay} />
